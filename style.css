@@ -66,6 +66,11 @@ head {
   left: 0px;
   right: 0;
 }
+
+#amongus{
+  display: none;
+}
+
 .colorful-button.light {
   --delay: .15s;
   --c-color-1: rgba(172, 160, 255, 0.15);
