@@ -178,7 +178,7 @@ canvas {
     border-radius: 4px;
 }
 
-/* Handle on hover */s
+/* Handle on hover */
 .content .offer-card .programming-lang::-webkit-scrollbar-thumb:hover {
     background: #777cc0;
 }
@@ -231,6 +231,9 @@ canvas {
 }
 
 @media (max-width: 600px){
+    #bg-video {
+        display: none;
+    }
     .navbar .nav-btns .nav-btn {
         font-size: 16px;
         padding: 3px 8px 3px 8px;
@@ -271,3 +274,4 @@ canvas {
         margin: 3px;
     }
 }
+
