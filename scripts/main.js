@@ -4,7 +4,6 @@ const projectsbtn = document.getElementById("projects-btn");
 const aboutbtn = document.getElementById("about-btn");
 const contactbtn = document.getElementById("contact-btn");
 
-
 vid.addEventListener("timeupdate", function () {
     if(this.currentTime >= (this.duration-5)) {
         this.currentTime = 3.0;
