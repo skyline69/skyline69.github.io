@@ -336,48 +336,48 @@ canvas {
     width: 165px;
     height: 165px;
     border: 1px solid #91daffa5;
-    -webkit-animation: spin3D 3s linear .2s infinite;
-    -moz-animation: spin3D 3s linear .2s infinite;
-    -o-animation: spin3D 3s linear .2s infinite;
+    -webkit-animation: spin3D 3s linear .2s infinite !important;
+    -moz-animation: spin3D 3s linear .2s infinite !important;
+    -o-animation: spin3D 3s linear .2s infinite !important;
 }
 
 .green-orbit {
     width: 120px;
     height: 120px;
     border: 1px solid #91ffbfa5;
-    -webkit-animation: spin3D 2s linear 0s infinite;
-    -moz-animation: spin3D 2s linear 0s infinite;
-    -o-animation: spin3D 2s linear 0s infinite;;
+    -webkit-animation: spin3D 2s linear 0s infinite !important;
+    -moz-animation: spin3D 2s linear 0s infinite !important;
+    -o-animation: spin3D 2s linear 0s infinite !important;
 }
 
 .red-orbit {
     width: 90px;
     height: 90px;
     border: 1px solid rgba(255, 184, 145, 0.65);
-    -webkit-animation: spin3D 1s linear 0s infinite;
-    -moz-animation: spin3D 1s linear 0s infinite;
-    -o-animation: spin3D 1s linear 0s infinite;
+    -webkit-animation: spin3D 1s linear 0s infinite !important;
+    -moz-animation: spin3D 1s linear 0s infinite !important;
+    -o-animation: spin3D 1s linear 0s infinite !important;
 }
 
 .white-orbit {
     width: 60px;
     height: 60px;
     border: 2px solid #ffffff;
-    -webkit-animation: spin3D 10s linear 0s infinite;
-    -moz-animation: spin3D 10s linear 0s infinite;
-    -o-animation: spin3D 10s linear 0s infinite;
+    -webkit-animation: spin3D 10s linear 0s infinite !important;
+    -moz-animation: spin3D 10s linear 0s infinite !important;
+    -o-animation: spin3D 10s linear 0s infinite !important;
 }
 
 .w1 {
-    transform: rotate3D(1, 1, 1, 90deg);
+    transform: rotate3D(1, 1, 1, 90deg) !important;
 }
 
 .w2 {
-    transform: rotate3D(1, 2, .5, 90deg);
+    transform: rotate3D(1, 2, .5, 90deg) !important;
 }
 
 .w3 {
-    transform: rotate3D(.5, 1, 2, 90deg);
+    transform: rotate3D(.5, 1, 2, 90deg) !important;
 }
 
 
@@ -385,9 +385,9 @@ canvas {
 
 @keyframes spin3D {
     from {
-        transform: rotate3d(.5,.5,.5, 360deg);
+        transform: rotate3d(.5,.5,.5, 360deg) !important;
     }
     to{
-        transform: rotate3d(0,0,0,0deg);
+        transform: rotate3d(0,0,0,0deg) !important;
     }
 }
