@@ -571,6 +571,7 @@ textarea {
     .content .content-card .contact-form {
         height: 400px;
         padding: 10px;
+        width: 250px;
         margin: 0 auto;
 
     }
@@ -595,7 +596,7 @@ textarea {
     .content .content-card .contact-form .input-group textarea {
         background: rgb(var(--dark), 0.4);
         color: #c6c6c6;
-        font-size: 12px;
+        font-size: 14px;
         padding: 18px 2px 9px 2px;
         display: block;
         border: none;
@@ -606,19 +607,19 @@ textarea {
 
     .content .content-card .contact-form .input-group textarea {
         resize: none;
-        width: 40vw;
+        width: 52vw;
     }
 
     .content .content-card .contact-form .input-group input {
-        width: 40vw;
+        width: 52vw;
     }
 
     .content .content-card .contact-form .input-group input:focus ~ .bar:before {
-        width: 41vw;
+        width: 53vw;
     }
 
     .content .content-card .contact-form .input-group textarea:focus ~ .bar:before {
-        width: 41vw;
+        width: 53vw;
     }
 
     .content .content-card .contact-form .send-btn{
