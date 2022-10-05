@@ -569,6 +569,7 @@ textarea {
 
 @media (max-width: 600px) {
     .content .content-card .contact-form {
+        overflow: hidden;
         height: 400px;
         padding: 10px;
         width: 280px;
