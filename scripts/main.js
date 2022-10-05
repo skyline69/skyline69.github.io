@@ -19,3 +19,19 @@ aboutbtn.addEventListener("click", () => {
 contactbtn.addEventListener("click", () => {
     window.location = "/about";
 });
+
+const loader = document.querySelector(".loader-wrapper");
+const programming_box = document.querySelector(".programming-lang");
+const navbar = document.querySelector(".navbar");
+const content = document.querySelector(".content");
+
+window.onload = () => {
+    document.title = "loading... | skyline69";
+    setTimeout(function () {
+        document.title = "skyline69";
+        loader.style.opacity = "0";
+        programming_box.style.display = "block";
+        content.style.opacity = "100";
+        navbar.style.display = "flex";
+    }, 1000)
+}
