@@ -309,7 +309,7 @@ canvas {
     top:0;
     left:0;
     background: #050e15;
-    position: fixed;
+    position: fixed !important;
     width: 100%;
     height: 100%;
     transition: all 0.3s ease-out; !important
