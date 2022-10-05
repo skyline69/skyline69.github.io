@@ -569,7 +569,7 @@ textarea {
 
 @media (max-width: 600px) {
     .content .content-card .contact-form {
-        height: 370px;
+        height: 400px;
         padding: 10px;
         margin: 0 auto;
 
@@ -577,7 +577,7 @@ textarea {
     .content .content-card .contact-form h1 {
         text-align: center;
         margin: 0 auto;
-        font-size: 22px;
+        font-size: 20px;
         padding-bottom: 5px;
         font-weight: 500;
     }
