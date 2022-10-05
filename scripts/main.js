@@ -32,6 +32,9 @@ window.onload = () => {
         loader.style.opacity = "0";
         programming_box.style.display = "block";
         content.style.opacity = "100";
-        navbar.style.display = "flex";
+        navbar.style.opacity = "100";
+
     }, 1000)
+    setTimeout(function() {loader.parentNode.removeChild(loader)},1200);
+
 }
