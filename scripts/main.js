@@ -25,7 +25,7 @@ const programming_box = document.querySelector(".programming-lang");
 const navbar = document.querySelector(".navbar");
 const content = document.querySelector(".content");
 
-window.onload = () => {
+window.addEventListener('load', () => {
     document.title = "loading... | skyline69";
     setTimeout(function () {
         document.title = "skyline69";
@@ -36,5 +36,7 @@ window.onload = () => {
 
     }, 1000)
     setTimeout(function() {loader.parentNode.removeChild(loader)},1200);
+});
 
-}
+
+
