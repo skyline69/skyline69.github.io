@@ -9,15 +9,15 @@ homebtn.addEventListener("click", () => {
 });
 
 projectsbtn.addEventListener("click", () => {
-    window.location = "/projects.html";
+    window.location = "/projects";
 });
 
 aboutbtn.addEventListener("click", () => {
-    window.location = "/about.html";
+    window.location = "/about";
 });
 
 contactbtn.addEventListener("click", () => {
-    window.location = "/contact.html";
+    window.location = "/contact";
 });
 
 
