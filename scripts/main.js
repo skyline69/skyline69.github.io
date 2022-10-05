@@ -9,33 +9,15 @@ homebtn.addEventListener("click", () => {
 });
 
 projectsbtn.addEventListener("click", () => {
-    window.location = "/projects";
+    window.location = "/projects.html";
 });
 
 aboutbtn.addEventListener("click", () => {
-    window.location = "/about";
+    window.location = "/about.html";
 });
 
 contactbtn.addEventListener("click", () => {
-    window.location = "/about";
-});
-
-const loader = document.querySelector(".loader-wrapper");
-const programming_box = document.querySelector(".programming-lang");
-const navbar = document.querySelector(".navbar");
-const content = document.querySelector(".content");
-
-window.addEventListener('load', () => {
-    document.title = "loading... | skyline69";
-    setTimeout(function () {
-        document.title = "skyline69";
-        loader.style.opacity = "0";
-        programming_box.style.display = "block";
-        content.style.opacity = "100";
-        navbar.style.opacity = "100";
-
-    }, 1000)
-    setTimeout(function() {loader.parentNode.removeChild(loader)},1200);
+    window.location = "/contact.html";
 });
 
 

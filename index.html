@@ -41,7 +41,7 @@
 </div>
 <div class="content">
 
-    <div class="welcome-card">
+    <div class="content-card">
         <h1 class="title">Welcome!</h1>
         <h2 class="description">My name is Efe and I am a <span id="br-green">software developer</span>.</h2>
     </div>
@@ -93,7 +93,27 @@
 
 
 <script type="application/javascript" src="scripts/main.js"></script>
+<script type="application/javascript">
+    const loader = document.querySelector(".loader-wrapper");
+    const programming_box = document.querySelector(".programming-lang");
+    const navbar = document.querySelector(".navbar");
+    const content = document.querySelector(".content");
 
+    window.addEventListener('load', () => {
+        document.title = "loading... | skyline69";
+        setTimeout(function () {
+            document.title = "skyline69";
+            loader.style.opacity = "0";
+            programming_box.style.display = "block";
+            content.style.opacity = "100";
+            navbar.style.opacity = "100";
+
+        }, 1000)
+        setTimeout(function() {loader.parentNode.removeChild(loader)},1200);
+    });
+
+
+</script>
 </body>
 
 

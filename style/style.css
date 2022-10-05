@@ -102,7 +102,7 @@ canvas {
     padding-right: 15px;
 }
 
-.content .welcome-card {
+.content .content-card {
     box-shadow: 0 0 0 1px #5bffec inset;
     text-align: center;
     background-color: rgb(var(--dark-blue),0.5);
@@ -274,14 +274,14 @@ canvas {
         font-size: 30px;
     }
 
-    .content .welcome-card h1 , .content .offer-card .title h1 {
+    .content .content-card h1 , .content .offer-card .title h1 {
         font-size: 30px;
     }
-    .content .welcome-card h2, .content .offer-card .description h2 {
+    .content .content-card h2, .content .offer-card .description h2 {
         font-size: 15px;
     }
 
-    .content .welcome-card {
+    .content .content-card {
         width: 75vw;
     }
 
@@ -381,8 +381,6 @@ canvas {
 }
 
 
-
-
 @keyframes spin3D {
     from {
         transform: rotate3d(.5,.5,.5, 360deg);
@@ -391,3 +389,5 @@ canvas {
         transform: rotate3d(0,0,0,0deg);
     }
 }
+
+
