@@ -571,7 +571,7 @@ textarea {
     .content .content-card .contact-form {
         height: 400px;
         padding: 10px;
-        width: 250px;
+        width: 280px;
         margin: 0 auto;
 
     }
@@ -607,28 +607,28 @@ textarea {
 
     .content .content-card .contact-form .input-group textarea {
         resize: none;
-        width: 52vw;
+        width: 60vw;
     }
 
     .content .content-card .contact-form .input-group input {
-        width: 52vw;
+        width: 60vw;
     }
 
     .content .content-card .contact-form .input-group input:focus ~ .bar:before {
-        width: 53vw;
+        width: 61vw;
     }
 
     .content .content-card .contact-form .input-group textarea:focus ~ .bar:before {
-        width: 53vw;
+        width: 61vw;
     }
 
     .content .content-card .contact-form .send-btn{
-        padding: 8px;
+        padding: 10px;
         font-weight: 500;
         color: white;
-        width: 143px;
+        width: 183px;
         height: 50px;
-        font-size: 18px;
+        font-size: 19px;
         text-rendering: geometricPrecision;
         outline: none;
         display: block;
