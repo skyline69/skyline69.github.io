@@ -39,6 +39,7 @@
 </div>
 
 <div class="content">
+
     <div class="content-card">
         <h1>Contact</h1>
         <h2>Here you can send me messages.</h2>
@@ -49,8 +50,9 @@
                     method="POST"
             >
                 <div class="input-group">
-                    <input type="text"  autocomplete="on" autocapitalize="off" title="Type your E-mail or Name" spellcheck="false" required>
-                    <span class="highlight"></span><span class="bar"></span><label>E-mail or Name</label>
+                    <input type="text" autocomplete="on" autocapitalize="off" title="Type your E-mail or Name"
+                           spellcheck="false" required>
+                    <span class="highlight"></span><span class="bar"></span><label>E-mail</label>
                 </div>
                 <br>
                 <div class="input-group">
@@ -61,7 +63,27 @@
                 <button type="submit" title="Send to E-mail" class="send-btn">Send</button>
             </form>
         </div>
+        <div class="socials">
+            <h1>My Socials</h1>
+            <div class="line"></div>
+            <div class="socials-card">
+                <div class="social-box">
+                    <img src="img/instagram_logo.png" alt="instagram_logo">
+                    <span>Instagram</span>
+                </div>
+                <div class="social-box">
+                    <img src="img/GitHub-Mark-Light-64px.png" alt="github_logo" id="github-img">
+                    <span>GitHub</span>
+                </div>
+                <div class="social-box">
+                    <img src="img/twitter_logo.png" alt="twitter_logo" id="twitter-img">
+                    <span>Twitter</span>
+                </div>
+            </div>
+        </div>
     </div>
+
+
 </div>
 
 
@@ -73,12 +95,13 @@
 
     window.addEventListener('load', () => {
         document.title = "loading... | skyline69";
+
         setTimeout(function () {
             document.title = "skyline69";
             loader.style.opacity = "0";
             content.style.opacity = "100";
             navbar.style.opacity = "100";
-
+            document.body.style.cursor = "auto";
         }, 1000)
         setTimeout(function () {
             loader.parentNode.removeChild(loader)

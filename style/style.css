@@ -16,7 +16,7 @@
 html {
     --s: 80px; /* control size of one square */
 
-
+    cursor: wait;
     --_g: #0000 90deg, #183033 0;
     background: conic-gradient(from 90deg at 2px 2px, var(--_g)) 0 0/var(--s) var(--s),
     conic-gradient(from 90deg at 1px 1px, var(--_g)) 0 0/calc(var(--s) / 5) calc(var(--s) / 5);
@@ -639,4 +639,70 @@ textarea {
     }
 
 
+}
+
+.content .content-card .socials h1 {
+    font-size: 55px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.content .content-card .socials .socials-card {
+    background-color: rgb(var(--dark-dark-blue), 0.7);
+    border-radius: 12px;
+    width: 350px;
+    margin: 40px auto 0;
+    padding: 12px;
+    box-shadow: 0 0 0 1px #5bffec inset;
+}
+.content .content-card .socials .socials-card .social-box {
+    margin-top: 12px;
+    margin-right: auto;
+    overflow: hidden;
+    margin-left: auto;
+    background-color: rgb(var(--blue-2), 0.5);
+    cursor: pointer;
+    font-size: 29px;
+    vertical-align: center;
+    border-radius: 6px;
+    text-align: right;
+    padding: 16px;
+    display: block;
+    text-rendering: geometricPrecision;
+    width: 220px;
+    height: 40px;
+    transition: background-color 0.2s ease-out;
+}
+
+.content .content-card .socials .socials-card .social-box:hover {
+    background-color: rgb(var(--blue), 0.9);
+    transition: background-color 0.2s ease-out;
+}
+.content .content-card .socials .socials-card .social-box:active {
+    background-color: #75b8e5;
+}
+
+.content .content-card .socials .socials-card .social-box img {
+    width: 50px;
+    float: left;
+}
+.content .content-card .socials .socials-card .social-box #github-img {
+    width: 42px;
+}
+.content .content-card .socials .socials-card .social-box #twitter-img {
+    border-radius: 16px;
+    width: 45px;
+}
+
+.content .content-card .socials .socials-card .social-box:last-child {
+    margin-bottom: 8px;
+}
+
+
+.line {
+    border-radius: 6px;
+    margin: 12px auto;
+    background: #5bffec;
+    width: 200px;
+    height: 4px;
 }
