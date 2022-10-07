@@ -13,8 +13,9 @@
 ## What is it built with?
 - 🟨 Javascript 
 - 🟦 CSS3
+- 🟥 Sass
 - 🟧 HTML5
-> Note: **_No, I am not using a framework. This is a static GitHub-page._**
+> Note: **_No, I am not using a complete framework. This is a static GitHub-page._**
 
 ## What tools did I use to develop this page?
 - 🟪 JetBrains WebStorm
