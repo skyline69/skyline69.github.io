@@ -92,6 +92,8 @@
     const loader = document.querySelector(".loader-wrapper");
     const navbar = document.querySelector(".navbar");
     const content = document.querySelector(".content");
+    const contact_form = document.querySelector(".contact-form");
+    const socials = document.querySelector(".socials");
     const instagram_btn = document.getElementById("instagram_link");
     const github_btn = document.getElementById("github_link");
     const twitter_btn = document.getElementById("twitter-link");
@@ -104,6 +106,8 @@
             loader.style.opacity = "0";
             content.style.opacity = "100";
             navbar.style.opacity = "100";
+            contact_form.style.display = "block";
+            socials.style.display = "block";
             document.body.style.cursor = "auto";
         }, 1000)
         setTimeout(function () {

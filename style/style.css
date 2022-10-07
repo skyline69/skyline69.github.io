@@ -443,6 +443,7 @@ textarea {
     background-color: rgb(var(--dark-dark-blue), 0.7);
     border-radius: 12px;
     width: 50vw;
+    display:none;
     margin: 0 auto;
     padding: 12px;
     box-shadow: 0 0 0 1px #5bffec inset;
@@ -640,7 +641,9 @@ textarea {
 
 
 }
-
+.content .content-card .socials {
+    display: none;
+}
 .content .content-card .socials h1 {
     font-size: 55px;
     font-weight: 600;
