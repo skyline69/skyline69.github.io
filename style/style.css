@@ -50,8 +50,7 @@ body {
     z-index: 100;
     padding: 15px;
     height: 40px;
-    opacity: 0;
-    display: flex;
+    display: none; /* then to flex */
     overflow: hidden;
     user-select: none;
     text-align: center;
