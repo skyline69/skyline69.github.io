@@ -67,16 +67,16 @@
             <h1>My Socials</h1>
             <div class="line"></div>
             <div class="socials-card">
-                <div class="social-box">
-                    <img src="img/instagram_logo.png" alt="instagram_logo">
+                <div class="social-box" id="instagram_link">
+                    <img (dragstart)="false;" src="img/instagram_logo.png" alt="instagram_logo">
                     <span>Instagram</span>
                 </div>
-                <div class="social-box">
-                    <img src="img/GitHub-Mark-Light-64px.png" alt="github_logo" id="github-img">
+                <div class="social-box" id="github_link">
+                    <img (dragstart)="false;" src="img/GitHub-Mark-Light-64px.png" alt="github_logo" id="github-img">
                     <span>GitHub</span>
                 </div>
-                <div class="social-box">
-                    <img src="img/twitter_logo.png" alt="twitter_logo" id="twitter-img">
+                <div class="social-box" id="twitter-link">
+                    <img (dragstart)="false;" src="img/twitter_logo.png" alt="twitter_logo" id="twitter-img">
                     <span>Twitter</span>
                 </div>
             </div>
@@ -92,6 +92,9 @@
     const loader = document.querySelector(".loader-wrapper");
     const navbar = document.querySelector(".navbar");
     const content = document.querySelector(".content");
+    const instagram_btn = document.getElementById("instagram_link");
+    const github_btn = document.getElementById("github_link");
+    const twitter_btn = document.getElementById("twitter-link");
 
     window.addEventListener('load', () => {
         document.title = "loading... | skyline69";
@@ -107,6 +110,19 @@
             loader.parentNode.removeChild(loader)
         }, 1200);
     });
+
+    instagram_btn.addEventListener("click", () => {
+        window.open("https://www.instagram.com/skyline.rno263/");
+    })
+
+    github_btn.addEventListener("click", () => {
+        window.open("https://github.com/skyline69/");
+    })
+
+    twitter_btn.addEventListener("click", () => {
+        window.open("https://twitter.com/jo3mxma");
+    })
+
 </script>
 </body>
 </html>
