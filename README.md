@@ -17,4 +17,4 @@
 > Note: **_No, I am not using a framework. This is a static GitHub-page._**
 
 ## What tools did I use to develop this page?
-- 🟪 JetBrains Webstorm
+- 🟪 JetBrains WebStorm
