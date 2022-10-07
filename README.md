@@ -2,7 +2,7 @@
 ---
 ---
 
-## What does my Homepage include?
+## What does my Portfolio include?
 - A Main Page with a techstack information.
 - An About Page (still being built.)
 - A Project Page (still being built.)
