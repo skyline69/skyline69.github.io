@@ -44,7 +44,6 @@ body {
 }
 
 
-
 .navbar {
     box-shadow: 0 0 0 1px #5bffec inset;
     z-index: 100;
@@ -136,10 +135,6 @@ body {
     background-color: #75b8e5;
 }
 
-.content .title {
-    color: #75ffe2;
-    text-shadow: 5px 5px 30px #000000;
-}
 
 .content .offer-card .programming-lang {
     display: none;
@@ -433,7 +428,7 @@ textarea {
     background-color: rgb(var(--dark-dark-blue), 0.7);
     border-radius: 12px;
     width: 50vw;
-    display:none;
+    display: none;
     margin: 0 auto;
     padding: 12px;
     box-shadow: 0 0 0 1px #5bffec inset;
@@ -491,7 +486,6 @@ textarea {
 }
 
 
-
 .content .content-card .contact-form .input-group textarea {
     resize: none;
     width: 35vw;
@@ -516,6 +510,7 @@ textarea {
     .content .content-card .contact-form .input-group textarea:focus ~ .bar:before {
         width: 36.4vw;
     }
+
     .content .content-card .contact-form .input-group input:focus ~ .bar:before {
         width: 17.5vw;
     }
@@ -523,7 +518,7 @@ textarea {
 }
 
 
-.content .content-card .contact-form .send-btn{
+.content .content-card .contact-form .send-btn {
     font-family: 'Poppins', sans-serif;
     padding: 10px;
     font-weight: 400;
@@ -546,9 +541,10 @@ textarea {
     transition: background-color 0.2s ease-out;
 }
 
-.content .content-card .contact-form .send-btn:focus{
+.content .content-card .contact-form .send-btn:focus {
     outline: 0;
 }
+
 .content .content-card .contact-form .send-btn:hover {
     background-color: rgb(var(--blue), 0.9);
     transition: background-color 0.2s ease-out;
@@ -569,6 +565,7 @@ textarea {
         margin: 0 auto;
 
     }
+
     .content .content-card .contact-form h1 {
         text-align: center;
         margin: 0 auto;
@@ -580,6 +577,7 @@ textarea {
     .content .content-card .contact-form .input-group label {
         font-size: 13px;
     }
+
     .content .content-card .contact-form form {
         margin-top: 20px;
         margin-left: auto;
@@ -616,7 +614,7 @@ textarea {
         width: 61vw;
     }
 
-    .content .content-card .contact-form .send-btn{
+    .content .content-card .contact-form .send-btn {
         padding: 10px;
         font-weight: 500;
         color: white;
@@ -634,6 +632,7 @@ textarea {
     .content .content-card .socials .socials-card {
         width: 270px !important;
     }
+
     .content .content-card .socials h1 {
         font-size: 45px !important;
     }
@@ -644,6 +643,7 @@ textarea {
 .content .content-card .socials {
     display: none;
 }
+
 .content .content-card .socials h1 {
     font-size: 55px;
     font-weight: 600;
@@ -682,6 +682,7 @@ textarea {
     background-color: rgb(var(--blue), 0.9);
     transition: background-color 0.2s ease-out;
 }
+
 .content .content-card .socials .socials-card .social-box:active {
     background-color: #75b8e5;
 }
@@ -696,9 +697,11 @@ textarea {
     width: 50px;
     float: left;
 }
+
 .content .content-card .socials .socials-card .social-box #github-img {
     width: 42px;
 }
+
 .content .content-card .socials .socials-card .social-box #twitter-img {
     border-radius: 16px;
     width: 45px;
@@ -717,3 +720,88 @@ textarea {
     height: 4px;
 }
 
+
+h1 {
+    font-size: 72px;
+    background: -webkit-linear-gradient(#91ffed, #6190e3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.content .content-card .cards {
+
+}
+
+
+
+.content .content-card .cards .project-box a {
+    text-decoration: none;
+    color: white;
+}
+
+.content .content-card .cards .project-box {
+    display: table-cell;
+    text-decoration: none;
+    transition: background-color 0.1s ease-out;
+    position: relative;
+    cursor: pointer;
+    background-color: rgb(var(--blue), 0.4);
+    width: 400px;
+    box-shadow: 0 0 0 1px #5bffec inset;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.content .content-card .cards .project-box:hover {
+    background-color: rgba(60, 128, 255, 0.4);
+    transition: background-color 0.05s ease-out;
+
+}
+
+.content .content-card .cards .project-box:hover .text h1 {
+    text-shadow: 0 15px 5px rgba(0, 0, 0, 0.1),
+    10px 20px 5px rgba(0, 0, 0, 0.05),
+    -10px 20px 5px rgba(0, 0, 0, 0.05);
+    font-size: 41px !important;
+    transition: all .05s ease-out;
+}
+
+
+.content .content-card .cards .project-box:hover .text h2 {
+    text-shadow: 0 15px 3px rgba(0, 0, 0, 0.1),
+    10px 20px 5px rgba(0, 0, 0, 0.05),
+    -10px 20px 5px rgba(0, 0, 0, 0.05);
+    transition: all .05s ease-out;
+}
+
+.content .content-card .cards .project-box .text {
+    text-decoration: none;
+    overflow: hidden;
+    text-align: left;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.content .content-card .cards .project-box img {
+    padding-top: 3px;
+    -moz-border-radius-topleft: 12px;
+    -moz-border-radius-topright: 12px;
+    -webkit-border-top-left-radius: 12px;
+    -webkit-border-top-right-radius: 12px;
+    width: calc(100% - 4px);
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.content .content-card .cards .project-box .text h1 {
+    font-size: 40px;
+    background: -webkit-linear-gradient(#fa9dbe, #8baaf1);
+    -webkit-background-clip: text;
+    transition: all .1s ease-in;
+
+}
+
+
+.content .content-card .cards .project-box .text h2 {
+    font-size: 20px;
+}
