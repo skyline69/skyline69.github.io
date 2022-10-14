@@ -439,6 +439,8 @@ textarea {
     font-size: 40px;
     font-weight: 500;
     padding-left: 20px;
+    background: -webkit-linear-gradient(#fa9dbe, #8baaf1) !important;
+    -webkit-background-clip: text !important;
 }
 
 .content .content-card .contact-form .input-group input,
@@ -564,6 +566,7 @@ textarea {
         width: 280px;
         margin: 0 auto;
 
+
     }
 
     .content .content-card .contact-form h1 {
@@ -642,6 +645,7 @@ textarea {
 
 .content .content-card .socials {
     display: none;
+
 }
 
 .content .content-card .socials h1 {
