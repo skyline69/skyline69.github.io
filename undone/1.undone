@@ -1,0 +1,65 @@
+<div class="cards">
+
+            <div class="project-box" >
+                <a href='https://github.com/skyline69/SimplazaAPI' target="_blank">
+                <img oncontextmenu="return false;"
+                     src="https://user-images.githubusercontent.com/67526259/177204226-f2b9be51-a3ee-4cb1-aada-24392fb745f1.png"
+                     loading="eager" alt="GitHub Simplaza IMG">
+                <div class="text">
+                    <h1>Simplaza API</h1>
+                    <h2>This is the unofficial Simplaza API</h2>
+                </div>
+                </a>
+            </div>
+
+            <div class="project-box" >
+                <a href='https://github.com/skyline69/SimplazaAPI' target="_blank">
+                    <img oncontextmenu="return false;"
+                         src="https://user-images.githubusercontent.com/67526259/177204226-f2b9be51-a3ee-4cb1-aada-24392fb745f1.png"
+                         loading="eager" alt="GitHub Simplaza IMG">
+                    <div class="text">
+                        <h1>Simplaza API</h1>
+                        <h2>This is the unofficial Simplaza API</h2>
+                    </div>
+                </a>
+            </div>
+
+            <div class="project-box" >
+                <a href='https://github.com/skyline69/SimplazaAPI' target="_blank">
+                    <img oncontextmenu="return false;"
+                         src="https://user-images.githubusercontent.com/67526259/177204226-f2b9be51-a3ee-4cb1-aada-24392fb745f1.png"
+                         loading="eager" alt="GitHub Simplaza IMG">
+                    <div class="text">
+                        <h1>Simplaza API</h1>
+                        <h2>This is the unofficial Simplaza API</h2>
+                    </div>
+                </a>
+            </div>
+
+            <div class="project-box" >
+                <a href='https://github.com/skyline69/SimplazaAPI' target="_blank">
+                    <img oncontextmenu="return false;"
+                         src="https://user-images.githubusercontent.com/67526259/177204226-f2b9be51-a3ee-4cb1-aada-24392fb745f1.png"
+                         loading="eager" alt="GitHub Simplaza IMG">
+                    <div class="text">
+                        <h1>Simplaza API</h1>
+                        <h2>This is the unofficial Simplaza API</h2>
+                    </div>
+                </a>
+            </div>
+
+            <div class="project-box" >
+                <a href='https://github.com/skyline69/SimplazaAPI' target="_blank">
+                    <img oncontextmenu="return false;"
+                         src="https://user-images.githubusercontent.com/67526259/177204226-f2b9be51-a3ee-4cb1-aada-24392fb745f1.png"
+                         loading="eager" alt="GitHub Simplaza IMG">
+                    <div class="text">
+                        <h1>Simplaza API</h1>
+                        <h2>This is the unofficial Simplaza API</h2>
+                    </div>
+                </a>
+            </div>
+
+        </div>
+
+</div>
