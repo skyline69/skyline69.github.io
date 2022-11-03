@@ -79,6 +79,10 @@
                     <img (dragstart)="false;" src="img/twitter_logo.png" alt="twitter_logo" id="twitter-img">
                     <span>Twitter</span>
                 </div>
+                <div class="social-box" id="spotify-link">
+                    <img (dragstart)="false;" src="img/Spotify_Logo_RGB_White.png" alt="spotify_logo" id="spotify-img">
+                    <span>Spotify</span>
+                </div>
             </div>
         </div>
     </div>
@@ -97,6 +101,7 @@
     const instagram_btn = document.getElementById("instagram_link");
     const github_btn = document.getElementById("github_link");
     const twitter_btn = document.getElementById("twitter-link");
+    const spotify_btn = document.getElementById("spotify-link");
 
     window.addEventListener('load', () => {
         document.title = "loading... | skyline69";
@@ -125,6 +130,10 @@
 
     twitter_btn.addEventListener("click", () => {
         window.open("https://twitter.com/jo3mxma");
+    })
+
+    spotify_btn.addEventListener("click", () => {
+        window.open("https://open.spotify.com/user/316cpax2rkqlj6abizw2tsuh5pui");
     })
 
 </script>
