@@ -759,6 +759,9 @@ h1 {
     -webkit-text-fill-color: transparent;
 }
 
+.content .content-card .cards {
+    display: none;
+}
 
 .content .content-card .cards .project-box a {
     text-decoration: none;

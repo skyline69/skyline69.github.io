@@ -95,6 +95,7 @@
     const loader = document.querySelector(".loader-wrapper");
     const navbar = document.querySelector(".navbar");
     const content = document.querySelector(".content");
+    const cards = document.querySelector(".cards");
 
     window.addEventListener('load', () => {
         document.title = "loading... | skyline69";
@@ -103,6 +104,7 @@
             loader.style.opacity = "0";
             navbar.style.display = "flex";
             content.style.opacity = "100";
+            cards.style.display = "block";
             document.body.style.cursor = "auto";
         }, 1000)
         setTimeout(function () {
