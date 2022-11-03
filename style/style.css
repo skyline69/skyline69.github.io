@@ -6,7 +6,7 @@
     --blue-2: 36, 93, 132;
     --br-blue: 187, 225, 250;
     background-color: rgb(var(--dark-dark-blue));
-
+    color-scheme: dark;
 }
 
 html {
