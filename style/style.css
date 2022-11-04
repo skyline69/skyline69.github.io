@@ -706,7 +706,7 @@ textarea {
     text-rendering: geometricPrecision;
     width: 220px;
     height: 40px;
-    transition: background-color 0.2s ease-out;
+    transition: background-color  0.2s ease-out;
 }
 
 .content .content-card .socials .socials-card .social-box:hover {
@@ -730,12 +730,34 @@ textarea {
     float: left;
 }
 
+.content .content-card .socials .socials-card:hover span{
+    transition:  color 0.2s ease-out;
+}
+
+.content .content-card .socials .socials-card #twitter-link:hover span{
+    color: #91c7ee;
+}
+
+.content .content-card .socials .socials-card #spotify-link:hover span{
+    color: #1ed760;
+}
+.content .content-card .socials .socials-card #instagram-link:hover span {
+    color: #f59bfc;
+}
+.content .content-card .socials .socials-card #github-link:hover span {
+    color: #d4b7ff;
+}
+
 .content .content-card .socials .socials-card .social-box #github-img {
     width: 42px;
 }
 
+.content .content-card .socials .socials-card .social-box #spotify-img {
+    image-rendering: smooth;
+    width: 45px;
+}
+
 .content .content-card .socials .socials-card .social-box #twitter-img {
-    border-radius: 16px;
     width: 45px;
 }
 
