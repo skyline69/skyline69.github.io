@@ -872,6 +872,8 @@ h1 {
     font-size: 20px;
 }
 
+
+
 @media screen and (max-width: 600px) {
     .content .content-card .cards .project-box {
         width: 250px;
@@ -895,4 +897,6 @@ h1 {
     .content .content-card .cards .project-box:hover .text h1 {
         font-size: 33px !important;
     }
+
 }
+

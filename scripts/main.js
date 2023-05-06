@@ -19,6 +19,3 @@ aboutbtn.addEventListener("click", () => {
 contactbtn.addEventListener("click", () => {
     window.location = "/contact";
 });
-
-
-
