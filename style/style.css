@@ -734,10 +734,6 @@ textarea {
     transition:  color 0.2s ease-out;
 }
 
-.content .content-card .socials .socials-card #twitter-link:hover span{
-    color: #91c7ee;
-}
-
 .content .content-card .socials .socials-card #spotify-link:hover span{
     color: #1ed760;
 }
@@ -754,10 +750,6 @@ textarea {
 
 .content .content-card .socials .socials-card .social-box #spotify-img {
     image-rendering: smooth;
-    width: 45px;
-}
-
-.content .content-card .socials .socials-card .social-box #twitter-img {
     width: 45px;
 }
 
