@@ -12,3 +12,4 @@ Because I compiled it before I published it.
 ## What tools did I use to develop this page?
 - My brain (not very useful)
 - Neovim (very useful)
+
