@@ -1,21 +1,14 @@
 ![skylineweblogo](https://user-images.githubusercontent.com/67526259/194554195-963be726-c9af-495b-a5d3-6a508ff3fc19.png)
----
----
 
 ## What does my Portfolio include?
-- A Main Page with a techstack information.
-- An About Page (still being built.)
-- A Project Page with cool animation
-- A Contact Page with social buttons
-
-
+Stuff about me, my techstack & my projects.
 
 ## What is it built with?
-- 🟨 Javascript 
-- 🟦 CSS3
-- 🟥 Sass
-- 🟧 HTML5
-> Note: **_No, I am not using a complete framework. This is a static GitHub-page._**
+Svelte
+
+## Why does your code look like that?
+Because I compiled it before I published it.
 
 ## What tools did I use to develop this page?
-- 🟪 JetBrains WebStorm
+- My brain (not very useful)
+- Neovim (very useful)
