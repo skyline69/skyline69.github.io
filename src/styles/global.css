@@ -24,6 +24,50 @@
   font-display: swap;
 }
 
+/* ── Atkinson Hyperlegible Self-Hosted (Readable Text) ── */
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('/fonts/Atkinson_Hyperlegible/AtkinsonHyperlegible-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('/fonts/Atkinson_Hyperlegible/AtkinsonHyperlegible-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Noto Sans Self-Hosted (Fallback Text Face) ── */
+
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('/fonts/noto-sans/NotoSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('/fonts/noto-sans/NotoSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('/fonts/noto-sans/NotoSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── Design Tokens ── */
 
 :root {
@@ -34,8 +78,17 @@
   --highlight: #C9A87C;
   --dim: #8A8477;
   --text: #EEEDEB;
+  --rain-bg-base: #26211F;
+  --rain-bg-mid: #332C2A;
+  --rain-bg-deep: #171412;
+  --rain-glyph: color-mix(in srgb, var(--highlight) 74%, var(--accent) 26%);
+  --rain-glyph-dim: color-mix(in srgb, var(--accent) 76%, var(--highlight) 24%);
+  --rain-glow: color-mix(in srgb, var(--highlight) 42%, transparent);
+  --rain-vignette: #120F0E;
+  --rain-center-mask: #282220;
 
   --font: 'Fira Code', monospace;
+  --font-text: 'Atkinson Hyperlegible', 'Noto Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --max-width: 72rem;
   --gap: 1.5rem;
   --section-gap: 2.5rem;
@@ -55,15 +108,85 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--highlight) var(--bg-alt);
+}
+
+/* ── Scrollbar (Webkit) ── */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-alt);
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--highlight) 60%, transparent);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--highlight);
+}
+
+/* ── Text Selection ── */
+
+::selection {
+  background: color-mix(in srgb, var(--highlight) 32%, transparent);
+  color: var(--text);
+}
+
+::-moz-selection {
+  background: color-mix(in srgb, var(--highlight) 32%, transparent);
+  color: var(--text);
 }
 
 body {
   font-family: var(--font);
-  background: var(--bg);
+  background: var(--rain-bg-base);
   color: var(--text);
   line-height: 1.7;
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(
+      112% 88% at 50% 50%,
+      color-mix(in srgb, var(--rain-center-mask) 72%, transparent) 0%,
+      color-mix(in srgb, var(--rain-center-mask) 48%, transparent) 50%,
+      transparent 78%
+    ),
+    radial-gradient(
+      128% 118% at 50% 50%,
+      transparent 52%,
+      color-mix(in srgb, var(--rain-vignette) 88%, transparent) 100%
+    ),
+    radial-gradient(
+      74% 58% at 14% 14%,
+      color-mix(in srgb, var(--rain-glow) 12%, transparent) 0%,
+      transparent 74%
+    ),
+    radial-gradient(
+      78% 62% at 88% 86%,
+      color-mix(in srgb, var(--rain-glow) 10%, transparent) 0%,
+      transparent 76%
+    );
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Typography ── */
@@ -92,6 +215,8 @@ img {
   max-width: 100%;
   height: auto;
   display: block;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 /* ── Layout Primitives ── */
@@ -130,6 +255,7 @@ img {
   border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
   height: 100%;
   margin: -0.5px; /* collapse shared borders */
+  scroll-margin-top: 3.5rem; /* offset for the fixed nav */
 }
 
 .section .container {
@@ -179,6 +305,10 @@ img {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  body::after {
+    animation: none;
   }
 
   .typing-cursor::after {

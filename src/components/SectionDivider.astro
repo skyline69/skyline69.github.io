@@ -1,0 +1,161 @@
+---
+/**
+ * SectionDivider.astro
+ *
+ * Three-star separator between sections.
+ * Each star's color shifts along a palette based on scroll position:
+ * scrolling down shifts colors right, scrolling up shifts left.
+ */
+import { Icon } from 'astro-icon/components';
+---
+
+<div class="section-divider" aria-hidden="true">
+  <span class="divider-star" data-star-index="0">
+    <Icon name="lucide:sparkles" size={13} />
+  </span>
+  <span class="divider-star" data-star-index="1">
+    <Icon name="lucide:sparkles" size={13} />
+  </span>
+  <span class="divider-star" data-star-index="2">
+    <Icon name="lucide:sparkles" size={13} />
+  </span>
+</div>
+
+<style>
+  .section-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    user-select: none;
+  }
+
+  .divider-star {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.95rem;
+    height: 0.95rem;
+    opacity: 0.35;
+    color: var(--accent);
+  }
+
+  .divider-star :global(svg) {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+
+<script>
+  function initDividers(): void {
+    const palette: string[] = [
+      '#8A8477', // --dim
+      '#E0CCBE', // --accent
+      '#C9A87C', // --highlight
+      '#EEEDEB', // --text
+      '#747264', // --panel
+    ];
+
+    const dividers: NodeListOf<HTMLElement> = document.querySelectorAll<HTMLElement>(
+      '.section-divider',
+    );
+
+    if (dividers.length === 0) return;
+
+    const prefersReducedMotion: boolean = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    if (prefersReducedMotion) return;
+
+    // Each divider gets an offset based on its position on the page
+    // so they don't all show the same colors at once
+    interface DividerData {
+      el: HTMLElement;
+      stars: HTMLElement[];
+    }
+
+    const dividerData: DividerData[] = [];
+
+    dividers.forEach((divider: HTMLElement): void => {
+      const stars: HTMLElement[] = Array.from(
+        divider.querySelectorAll<HTMLElement>('.divider-star'),
+      );
+      dividerData.push({ el: divider, stars });
+    });
+
+    let lastScroll: number = 0;
+    let colorOffset: number = 0;
+    let ticking: boolean = false;
+
+    function updateColors(): void {
+      const scrollY: number = window.scrollY;
+      const scrollDelta: number = scrollY - lastScroll;
+      lastScroll = scrollY;
+
+      // Accumulate a continuous offset based on scroll.
+      // Dividing by a larger number = slower shift.
+      colorOffset += scrollDelta / 200;
+
+      dividerData.forEach((data: DividerData, dividerIndex: number): void => {
+        data.stars.forEach((star: HTMLElement, starIndex: number): void => {
+          // Each star gets its own phase: star index + divider offset + scroll offset
+          const phase: number = colorOffset + starIndex * 0.7 + dividerIndex * 1.3;
+
+          // Map phase to a palette index (wrap around)
+          const paletteLen: number = palette.length;
+          // Normalize to positive range
+          const normalizedPhase: number =
+            ((phase % paletteLen) + paletteLen) % paletteLen;
+          const lowerIndex: number = Math.floor(normalizedPhase);
+          const fraction: number = normalizedPhase - lowerIndex;
+
+          // Interpolate between two adjacent palette colors
+          const colorA: string = palette[lowerIndex % paletteLen];
+          const colorB: string = palette[(lowerIndex + 1) % paletteLen];
+
+          const blended: string = blendColors(colorA, colorB, fraction);
+          star.style.color = blended;
+        });
+      });
+
+      ticking = false;
+    }
+
+    function blendColors(hexA: string, hexB: string, t: number): string {
+      const rA: number = parseInt(hexA.slice(1, 3), 16);
+      const gA: number = parseInt(hexA.slice(3, 5), 16);
+      const bA: number = parseInt(hexA.slice(5, 7), 16);
+
+      const rB: number = parseInt(hexB.slice(1, 3), 16);
+      const gB: number = parseInt(hexB.slice(3, 5), 16);
+      const bB: number = parseInt(hexB.slice(5, 7), 16);
+
+      const r: number = Math.round(rA + (rB - rA) * t);
+      const g: number = Math.round(gA + (gB - gA) * t);
+      const b: number = Math.round(bA + (bB - bA) * t);
+
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function onScroll(): void {
+      if (!ticking) {
+        requestAnimationFrame((): void => {
+          updateColors();
+        });
+        ticking = true;
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Initial paint
+    lastScroll = window.scrollY;
+    updateColors();
+  }
+
+  initDividers();
+  document.addEventListener('astro:after-swap', initDividers);
+</script>

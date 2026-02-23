@@ -1,0 +1,206 @@
+---
+import SectionTitle from './SectionTitle.astro';
+import { getActiveHighlights } from '../lib/content';
+
+const highlights = await getActiveHighlights();
+---
+
+<section class="section" id="highlights">
+  <div class="container">
+    <SectionTitle text="Highlights" />
+    <div class="highlights-grid">
+      {highlights.map((h, i) => (
+        <div class="highlight-item">
+          <span class="highlight-index" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <div class="highlight-body">
+            <h3>{h.data.title}</h3>
+            <p>{h.data.body}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  #highlights {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      linear-gradient(
+        140deg,
+        color-mix(in srgb, var(--bg-alt) 22%, transparent),
+        color-mix(in srgb, var(--bg) 18%, transparent)
+      ),
+      radial-gradient(
+        100% 80% at 0% 0%,
+        color-mix(in srgb, var(--highlight) 5%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        120% 100% at 100% 100%,
+        color-mix(in srgb, var(--accent) 4.5%, transparent),
+        transparent 75%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--accent) 3%, transparent) 0 1px,
+        transparent 1px 42px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--accent) 2.5%, transparent) 0 1px,
+        transparent 1px 42px
+      );
+  }
+
+  #highlights::before,
+  #highlights::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #highlights::before {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--bg) 10%, transparent) 18%,
+      color-mix(in srgb, var(--bg) 14%, transparent) 78%,
+      color-mix(in srgb, var(--bg) 9%, transparent) 100%
+    );
+  }
+
+  #highlights::after {
+    inset: -8%;
+    opacity: 0.45;
+    background:
+      radial-gradient(
+        52% 48% at 22% 26%,
+        color-mix(in srgb, var(--highlight) 10%, transparent),
+        transparent 75%
+      ),
+      radial-gradient(
+        58% 52% at 78% 74%,
+        color-mix(in srgb, var(--accent) 10%, transparent),
+        transparent 79%
+      );
+    background-size: 135% 135%, 145% 145%;
+    background-position: 22% 26%, 78% 74%;
+    animation: highlights-background-drift 22s ease-in-out infinite;
+    animation-delay: -5.5s;
+  }
+
+  #highlights > .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes highlights-background-drift {
+    0%,
+    100% {
+      background-position: 22% 26%, 78% 74%;
+    }
+    50% {
+      background-position: 18% 22%, 82% 78%;
+    }
+  }
+
+  .highlights-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .highlight-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+
+  .highlight-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .highlight-item:first-child {
+    padding-top: 0;
+  }
+
+  .highlight-index {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--highlight);
+    opacity: 0.15;
+    line-height: 1;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+  }
+
+  .highlight-body h3 {
+    color: var(--highlight);
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+
+  .highlight-body p {
+    font-family: var(--font-text);
+    font-size: 0.92rem;
+    line-height: 1.8;
+    white-space: pre-line;
+    color: var(--text);
+    opacity: 0.92;
+  }
+
+  @media (max-width: 768px) {
+    #highlights {
+      background:
+        linear-gradient(
+          140deg,
+          color-mix(in srgb, var(--bg-alt) 16%, transparent),
+          color-mix(in srgb, var(--bg) 14%, transparent)
+        ),
+        radial-gradient(
+          100% 80% at 0% 0%,
+          color-mix(in srgb, var(--highlight) 3%, transparent),
+          transparent 72%
+        ),
+        radial-gradient(
+          120% 100% at 100% 100%,
+          color-mix(in srgb, var(--accent) 3%, transparent),
+          transparent 77%
+        ),
+        repeating-linear-gradient(
+          0deg,
+          color-mix(in srgb, var(--accent) 2%, transparent) 0 1px,
+          transparent 1px 46px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--accent) 1.25%, transparent) 0 1px,
+          transparent 1px 46px
+        );
+    }
+
+    #highlights::after {
+      opacity: 0.3;
+      background-size: 145% 145%, 160% 160%;
+      animation-duration: 24s;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #highlights::after {
+      animation: none;
+    }
+  }
+</style>

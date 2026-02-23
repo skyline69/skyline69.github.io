@@ -1,5 +1,6 @@
 ---
 import SectionTitle from './SectionTitle.astro';
+import { Icon } from 'astro-icon/components';
 import { getActiveProjects } from '../lib/content';
 
 const projects = await getActiveProjects();
@@ -28,7 +29,12 @@ const projects = await getActiveProjects();
               <span class="project-number" aria-hidden="true">
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <h3>{project.data.title}<span class="arrow" aria-hidden="true"> -&gt;</span></h3>
+              <h3>
+                {project.data.title}
+                <span class="arrow" aria-hidden="true">
+                  <Icon name="lucide:arrow-right" size={14} />
+                </span>
+              </h3>
             </div>
             <p>{project.data.description}</p>
             {project.data.tags.length > 0 && (
@@ -46,6 +52,134 @@ const projects = await getActiveProjects();
 </section>
 
 <style>
+  #projects {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  #projects::before,
+  #projects::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #projects::before {
+    background:
+      linear-gradient(
+        136deg,
+        color-mix(in srgb, var(--bg-alt) 22%, transparent),
+        color-mix(in srgb, var(--bg) 14%, transparent)
+      ),
+      repeating-linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--accent) 2.4%, transparent) 0 1px,
+        transparent 1px 38px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--accent) 1.8%, transparent) 0 1px,
+        transparent 1px 38px
+      );
+    background-position: 0 0, 0 0, 0 0;
+    opacity: 0.82;
+    animation: projects-grid-drift 26s linear infinite;
+  }
+
+  #projects::after {
+    inset: -6% -4%;
+    background:
+      linear-gradient(
+        112deg,
+        transparent 24%,
+        color-mix(in srgb, var(--highlight) 17%, transparent) 50%,
+        transparent 76%
+      );
+    background-size: 225% 100%;
+    background-position: 130% 0;
+    opacity: 0.2;
+    animation: projects-beam-pass 18s ease-in-out infinite;
+  }
+
+  #projects > .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes projects-grid-drift {
+    0% {
+      background-position: 0 0, 0 0, 0 0;
+    }
+    100% {
+      background-position: 0 0, 0 38px, 38px 0;
+    }
+  }
+
+  @keyframes projects-beam-pass {
+    0%,
+    18% {
+      background-position: 130% 0;
+    }
+    82%,
+    100% {
+      background-position: -24% 0;
+    }
+  }
+
+  @keyframes project-card-beam {
+    0% {
+      background-position: 120% 0;
+    }
+    100% {
+      background-position: -20% 0;
+    }
+  }
+
+  @keyframes project-image-scan {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 0 36px;
+    }
+  }
+
+  @keyframes project-image-breathe {
+    0%,
+    100% {
+      filter: saturate(0.95) contrast(0.97) brightness(0.95);
+    }
+    50% {
+      filter: saturate(1.08) contrast(1.03) brightness(1.02);
+    }
+  }
+
+  @keyframes project-number-pulse {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.44;
+    }
+  }
+
+  @keyframes project-tag-awaken {
+    0% {
+      opacity: 0.72;
+      border-color: color-mix(in srgb, var(--highlight) 45%, transparent);
+      color: color-mix(in srgb, var(--highlight) 80%, var(--text) 20%);
+    }
+    100% {
+      opacity: 1;
+      border-color: color-mix(in srgb, var(--highlight) 86%, transparent);
+      color: color-mix(in srgb, var(--highlight) 92%, var(--text) 8%);
+    }
+  }
+
   .projects-list {
     display: flex;
     flex-direction: column;
@@ -54,13 +188,61 @@ const projects = await getActiveProjects();
 
   .project-card {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 2rem;
     align-items: start;
     text-decoration: none;
     color: var(--text);
-    padding-bottom: 2rem;
+    padding: 1rem 0.75rem 2rem;
     border-bottom: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--bg-alt) 14%, transparent) 0%,
+      transparent 74%
+    );
+  }
+
+  .project-card::before,
+  .project-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .project-card::before {
+    background:
+      linear-gradient(
+        114deg,
+        transparent 22%,
+        color-mix(in srgb, var(--highlight) 24%, transparent) 50%,
+        transparent 78%
+      );
+    background-size: 220% 100%;
+    background-position: 120% 0;
+    opacity: 0;
+  }
+
+  .project-card::after {
+    background:
+      linear-gradient(var(--highlight), var(--highlight)) left 0.45rem top 0.45rem / 1.2rem 1px no-repeat,
+      linear-gradient(var(--highlight), var(--highlight)) left 0.45rem top 0.45rem / 1px 1.2rem no-repeat,
+      linear-gradient(var(--highlight), var(--highlight)) right 0.45rem top 0.45rem / 1.2rem 1px no-repeat,
+      linear-gradient(var(--highlight), var(--highlight)) right 0.45rem top 0.45rem / 1px 1.2rem no-repeat,
+      linear-gradient(var(--highlight), var(--highlight)) left 0.45rem bottom 0.45rem / 1.2rem 1px no-repeat,
+      linear-gradient(var(--highlight), var(--highlight)) left 0.45rem bottom 0.45rem / 1px 1.2rem no-repeat,
+      linear-gradient(var(--highlight), var(--highlight)) right 0.45rem bottom 0.45rem / 1.2rem 1px no-repeat,
+      linear-gradient(var(--highlight), var(--highlight)) right 0.45rem bottom 0.45rem / 1px 1.2rem no-repeat;
+    opacity: 0.16;
+  }
+
+  .project-card > * {
+    position: relative;
+    z-index: 1;
   }
 
   .project-card:last-child {
@@ -68,20 +250,54 @@ const projects = await getActiveProjects();
     padding-bottom: 0;
   }
 
-  .project-card:hover .arrow {
-    color: var(--highlight);
-    opacity: 1;
+  .project-card:focus-visible,
+  .project-card:active {
+    outline: 1px solid color-mix(in srgb, var(--highlight) 60%, transparent);
+    outline-offset: -1px;
   }
 
   .project-image {
+    position: relative;
     overflow: hidden;
+    min-width: 0;
+    aspect-ratio: 16 / 10;
     border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+
+  .project-image::before,
+  .project-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+  }
+
+  .project-image::before {
+    background:
+      repeating-linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--accent) 16%, transparent) 0 1px,
+        transparent 1px 12px
+      );
+  }
+
+  .project-image::after {
+    background:
+      radial-gradient(
+        85% 60% at 84% 16%,
+        color-mix(in srgb, var(--highlight) 24%, transparent),
+        transparent 78%
+      );
   }
 
   .project-image img {
     width: 100%;
-    aspect-ratio: 16/10;
+    height: 100%;
     object-fit: cover;
+    object-position: 50% 50%;
+    filter: saturate(0.95) contrast(0.97) brightness(0.95);
     display: block;
   }
 
@@ -89,6 +305,7 @@ const projects = await getActiveProjects();
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    min-width: 0;
   }
 
   .project-header {
@@ -104,22 +321,36 @@ const projects = await getActiveProjects();
     opacity: 0.2;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    user-select: none;
   }
 
   .project-header h3 {
     color: var(--text);
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
   }
 
   .arrow {
-    opacity: 0.3;
-    font-weight: 400;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.95rem;
+    height: 0.95rem;
+    opacity: 0.32;
     color: var(--dim);
+    margin-left: 0.22rem;
+    vertical-align: text-bottom;
+    user-select: none;
+  }
+
+  .arrow :global(svg) {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
   .project-body p {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--accent);
     opacity: 0.8;
     line-height: 1.7;
@@ -132,19 +363,160 @@ const projects = await getActiveProjects();
   }
 
   .tag {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--highlight);
     border: 1px solid var(--highlight);
     padding: 0.15rem 0.5rem;
+    opacity: 0.84;
+  }
+
+  .project-card:is(:focus-visible, :active)::before {
+    opacity: 0.56;
+    animation: project-card-beam 3.4s ease-in-out infinite alternate;
+  }
+
+  .project-card:is(:focus-visible, :active)::after {
+    opacity: 0.46;
+  }
+
+  .project-card:is(:focus-visible, :active) .project-image::before {
+    opacity: 0.22;
+    animation: project-image-scan 2200ms linear infinite;
+  }
+
+  .project-card:is(:focus-visible, :active) .project-image::after {
+    opacity: 0.46;
+  }
+
+  .project-card:is(:focus-visible, :active) .project-image img {
+    animation: project-image-breathe 2.2s ease-in-out infinite;
+  }
+
+  .project-card:is(:focus-visible, :active) .project-number {
+    animation: project-number-pulse 1.6s ease-in-out infinite;
+  }
+
+  .project-card:is(:focus-visible, :active) .project-header h3 {
+    color: color-mix(in srgb, var(--text) 74%, var(--highlight) 26%);
+  }
+
+  .project-card:is(:focus-visible, :active) .arrow {
+    color: var(--highlight);
+    opacity: 0.88;
+  }
+
+  .project-card:is(:focus-visible, :active) .project-body p {
+    color: color-mix(in srgb, var(--accent) 74%, var(--text) 26%);
+    opacity: 0.96;
+  }
+
+  .project-card:is(:focus-visible, :active) .tag {
+    animation: project-tag-awaken 360ms ease-out both;
+  }
+
+  .project-card:is(:focus-visible, :active) .tag:nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  .project-card:is(:focus-visible, :active) .tag:nth-child(3) {
+    animation-delay: 120ms;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .project-card:hover::before {
+      opacity: 0.56;
+      animation: project-card-beam 3.4s ease-in-out infinite alternate;
+    }
+
+    .project-card:hover::after {
+      opacity: 0.46;
+    }
+
+    .project-card:hover .project-image::before {
+      opacity: 0.22;
+      animation: project-image-scan 2200ms linear infinite;
+    }
+
+    .project-card:hover .project-image::after {
+      opacity: 0.46;
+    }
+
+    .project-card:hover .project-image img {
+      animation: project-image-breathe 2.2s ease-in-out infinite;
+    }
+
+    .project-card:hover .project-number {
+      animation: project-number-pulse 1.6s ease-in-out infinite;
+    }
+
+    .project-card:hover .project-header h3 {
+      color: color-mix(in srgb, var(--text) 74%, var(--highlight) 26%);
+    }
+
+    .project-card:hover .arrow {
+      color: var(--highlight);
+      opacity: 0.88;
+    }
+
+    .project-card:hover .project-body p {
+      color: color-mix(in srgb, var(--accent) 74%, var(--text) 26%);
+      opacity: 0.96;
+    }
+
+    .project-card:hover .tag {
+      animation: project-tag-awaken 360ms ease-out both;
+    }
+
+    .project-card:hover .tag:nth-child(2) {
+      animation-delay: 70ms;
+    }
+
+    .project-card:hover .tag:nth-child(3) {
+      animation-delay: 120ms;
+    }
   }
 
   @media (max-width: 768px) {
+    #projects::before {
+      opacity: 0.65;
+      animation-duration: 34s;
+    }
+
+    #projects::after {
+      opacity: 0.14;
+      animation-duration: 24s;
+    }
+
     .project-card {
       grid-template-columns: 1fr;
       gap: 1rem;
+      padding-inline: 0.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #projects::before,
+    #projects::after,
+    .project-card::before,
+    .project-card:hover::before,
+    .project-card:focus-visible::before,
+    .project-card:active::before,
+    .project-card:hover .project-image::before,
+    .project-card:focus-visible .project-image::before,
+    .project-card:active .project-image::before,
+    .project-card:hover .project-image img,
+    .project-card:focus-visible .project-image img,
+    .project-card:active .project-image img,
+    .project-card:hover .project-number,
+    .project-card:focus-visible .project-number,
+    .project-card:active .project-number,
+    .project-card:hover .tag,
+    .project-card:focus-visible .tag,
+    .project-card:active .tag {
+      animation: none;
     }
   }
 </style>

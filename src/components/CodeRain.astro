@@ -1,0 +1,248 @@
+---
+/**
+ * Canvas-based "matrix code rain" background.
+ * Renders columns of x86 assembly instructions and register names
+ * falling at varied speeds, creating a subtle but unmistakably
+ * code-like animated backdrop. Fixed-position, covers the entire
+ * viewport behind all content.
+ */
+---
+
+<canvas id="code-rain" class="code-rain" aria-hidden="true"></canvas>
+
+<style>
+  .code-rain {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  // ── Code Rain Animation ──
+
+  /** Assembly instructions and operands used as falling characters */
+  const TOKENS: string[] = [
+    'MOV', 'ADD', 'SUB', 'MUL', 'DIV', 'AND', 'OR', 'XOR',
+    'NOT', 'SHL', 'SHR', 'CMP', 'JMP', 'JNZ', 'JE', 'JNE',
+    'JG', 'JL', 'JGE', 'JLE', 'CALL', 'RET', 'PUSH', 'POP',
+    'LEA', 'NOP', 'INC', 'DEC', 'NEG', 'TEST', 'INT', 'HLT',
+    'LOOP', 'REP', 'MOVZX', 'MOVSX', 'XCHG', 'IMUL', 'IDIV',
+    'SAR', 'SAL', 'ROR', 'ROL', 'SBB', 'ADC', 'CMOVZ', 'SETZ',
+    'EAX', 'EBX', 'ECX', 'EDX', 'ESI', 'EDI', 'ESP', 'EBP',
+    'RAX', 'RBX', 'RCX', 'RDX', 'RSI', 'RDI', 'RSP', 'RBP',
+    'R8', 'R9', 'R10', 'R11', 'R12', 'R13', 'R14', 'R15',
+    'AL', 'BL', 'CL', 'DL', 'AH', 'BH', 'CH', 'DH',
+    'RIP', 'CS', 'DS', 'SS', 'FS', 'GS',
+    '0x0', '0xFF', '0x1A', '0x80', '0xDEAD', '0xBEEF', '0xCAFE',
+    '[RSP]', '[RBP-8]', '[RAX+4]', '[RDI]', 'QWORD', 'DWORD', 'BYTE',
+    'db', 'dw', 'dd', 'dq', '.text', '.data', '.bss',
+    ';', ',',
+  ];
+
+  /** Column state for the falling animation */
+  interface Column {
+    x: number;
+    y: number;
+    speed: number;
+    chars: string[];
+    charIndex: number;
+    opacity: number;
+    fadeLength: number;
+  }
+
+  /**
+   * Initialise and run the code rain canvas animation.
+   * Respects prefers-reduced-motion by showing a static frame instead.
+   */
+  function initCodeRain(): void {
+    const canvas: HTMLCanvasElement | null = document.getElementById('code-rain') as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // ── Design tokens pulled from CSS variables ──
+    const styles: CSSStyleDeclaration = getComputedStyle(document.documentElement);
+    const highlightColor: string = styles.getPropertyValue('--highlight').trim() || '#C9A87C';
+    const accentColor: string = styles.getPropertyValue('--accent').trim() || '#E0CCBE';
+    const dimColor: string = styles.getPropertyValue('--dim').trim() || '#8A8477';
+
+    const FONT_SIZE: number = 14;
+    const COL_WIDTH: number = 22;
+    const reducedMotion: boolean = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let columns: Column[] = [];
+    let animationId: number = 0;
+    let dpr: number = 1;
+
+    // ── Scroll-reactive speed ──
+    let scrollVelocity: number = 0;
+    let lastScrollY: number = window.scrollY;
+    let scrollMultiplier: number = 1;
+
+    /** Pick a random token from the pool */
+    function randomToken(): string {
+      return TOKENS[Math.floor(Math.random() * TOKENS.length)];
+    }
+
+    /** Build a sequence of characters for a column to cycle through */
+    function buildCharSequence(length: number): string[] {
+      const seq: string[] = [];
+      for (let i: number = 0; i < length; i++) {
+        seq.push(randomToken());
+      }
+      return seq;
+    }
+
+    /** Parse a hex colour string into [r, g, b] */
+    function hexToRgb(hex: string): [number, number, number] {
+      const cleaned: string = hex.replace('#', '');
+      const r: number = parseInt(cleaned.substring(0, 2), 16);
+      const g: number = parseInt(cleaned.substring(2, 4), 16);
+      const b: number = parseInt(cleaned.substring(4, 6), 16);
+      return [r, g, b];
+    }
+
+    const highlightRgb: [number, number, number] = hexToRgb(highlightColor);
+    const accentRgb: [number, number, number] = hexToRgb(accentColor);
+    const dimRgb: [number, number, number] = hexToRgb(dimColor);
+
+    /** Resize canvas to fill viewport and rebuild columns */
+    function resize(): void {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w: number = window.innerWidth;
+      const h: number = window.innerHeight;
+      canvas!.width = w * dpr;
+      canvas!.height = h * dpr;
+      canvas!.style.width = w + 'px';
+      canvas!.style.height = h + 'px';
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const colCount: number = Math.ceil(w / COL_WIDTH) + 1;
+      columns = [];
+      for (let i: number = 0; i < colCount; i++) {
+        columns.push(createColumn(i * COL_WIDTH, true));
+      }
+    }
+
+    /** Create a single column with randomised properties */
+    function createColumn(x: number, randomStart: boolean): Column {
+      const h: number = window.innerHeight;
+      const fadeLength: number = 8 + Math.floor(Math.random() * 16);
+      return {
+        x,
+        y: randomStart ? -(Math.random() * h * 1.5) : -(Math.random() * FONT_SIZE * 4),
+        speed: 0.3 + Math.random() * 0.9,
+        chars: buildCharSequence(fadeLength + 4),
+        charIndex: 0,
+        opacity: 0.04 + Math.random() * 0.09,
+        fadeLength,
+      };
+    }
+
+    /** Draw a single frame of the animation */
+    function draw(): void {
+      const w: number = window.innerWidth;
+      const h: number = window.innerHeight;
+
+      // ── Update scroll velocity ──
+      const currentScrollY: number = window.scrollY;
+      scrollVelocity = currentScrollY - lastScrollY;
+      lastScrollY = currentScrollY;
+      // Smoothly compute multiplier: 1.0 (idle) up to 4.0 (fast scroll)
+      const targetMultiplier: number = 1.0 + Math.min(Math.abs(scrollVelocity) / 30, 3.0);
+      // Ease toward target — ramp up fast, decay slowly
+      const ease: number = targetMultiplier > scrollMultiplier ? 0.3 : 0.05;
+      scrollMultiplier += (targetMultiplier - scrollMultiplier) * ease;
+
+      ctx!.clearRect(0, 0, w, h);
+      ctx!.font = FONT_SIZE + 'px "Fira Code", monospace';
+      ctx!.textBaseline = 'top';
+
+      for (let c: number = 0; c < columns.length; c++) {
+        const col: Column = columns[c];
+        const totalChars: number = col.chars.length;
+
+        for (let i: number = 0; i < totalChars; i++) {
+          const charY: number = col.y + i * (FONT_SIZE + 4);
+          if (charY < -FONT_SIZE || charY > h) continue;
+
+          // Head character (brightest) — use highlight colour
+          const isHead: boolean = i === totalChars - 1;
+          // Tail fade — characters near the top of the column fade out
+          const tailFade: number = Math.min(i / col.fadeLength, 1);
+          const charOpacity: number = isHead
+            ? col.opacity * 2.5
+            : col.opacity * tailFade;
+
+          if (charOpacity < 0.005) continue;
+
+          let rgb: [number, number, number];
+          if (isHead) {
+            rgb = highlightRgb;
+          } else if (i > totalChars - 4) {
+            rgb = accentRgb;
+          } else {
+            rgb = dimRgb;
+          }
+
+          ctx!.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + charOpacity + ')';
+          const charIdx: number = (col.charIndex + i) % col.chars.length;
+          ctx!.fillText(col.chars[charIdx], col.x, charY);
+        }
+
+        // Advance column position (accelerates with scroll)
+        col.y += col.speed * scrollMultiplier;
+        // Cycle characters faster during scroll
+        if (Math.random() < 0.02 * scrollMultiplier) {
+          col.charIndex = (col.charIndex + 1) % col.chars.length;
+          // Occasionally swap a random character
+          const swapIdx: number = Math.floor(Math.random() * col.chars.length);
+          col.chars[swapIdx] = randomToken();
+        }
+
+        // Reset column when it scrolls past the bottom
+        if (col.y > h + FONT_SIZE) {
+          columns[c] = createColumn(col.x, false);
+        }
+      }
+    }
+
+    /** Animation loop */
+    function loop(): void {
+      draw();
+      animationId = requestAnimationFrame(loop);
+    }
+
+    // ── Setup ──
+    resize();
+
+    if (reducedMotion) {
+      // Static single frame for reduced-motion users
+      draw();
+    } else {
+      loop();
+    }
+
+    // Handle resize with debounce
+    let resizeTimer: number = 0;
+    window.addEventListener('resize', (): void => {
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout((): void => {
+        resize();
+      }, 150);
+    });
+
+    // Cleanup on page navigation (view transitions)
+    document.addEventListener('astro:before-swap', (): void => {
+      cancelAnimationFrame(animationId);
+    }, { once: true });
+  }
+
+  initCodeRain();
+  document.addEventListener('astro:after-swap', initCodeRain);
+</script>

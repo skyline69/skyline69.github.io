@@ -1,0 +1,309 @@
+---
+import SectionTitle from './SectionTitle.astro';
+import { getProfile } from '../lib/content';
+import { getAge } from '../lib/date';
+
+const profile = await getProfile();
+const { birthDate, summary, locationLine, languages } = profile.data;
+const age = getAge(birthDate);
+---
+
+<section class="section" id="about">
+  <div class="container">
+    <SectionTitle text="Who am I?" />
+    <div class="about-layout">
+      <div class="about-content">
+        {summary.map((paragraph: string, i: number) => (
+          <p class={i === 0 ? 'lead' : ''}>
+            <Fragment set:html={
+              paragraph
+                .replace('{age}', `<strong>${age}</strong>`)
+                .replace('Germany', '<strong>Germany</strong>')
+                .replace('elegant and efficient', '<strong>elegant and efficient</strong>')
+                .replace('age of 10', '<strong>age of 10</strong>')
+            } />
+          </p>
+        ))}
+      </div>
+      <aside class="about-sidebar">
+        <div class="info-block">
+          <span class="info-label">Location</span>
+          <span class="info-value">{locationLine}</span>
+        </div>
+        <div class="info-block">
+          <span class="info-label">Languages</span>
+          <span class="info-value">{languages.join(' / ')}</span>
+        </div>
+        <div class="info-block">
+          <span class="info-label">Age</span>
+          <span class="info-value info-value--big" data-age-counter={age.toString()}>{age}</span>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  #about {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      linear-gradient(
+        140deg,
+        color-mix(in srgb, var(--bg-alt) 22%, transparent),
+        color-mix(in srgb, var(--bg) 18%, transparent)
+      ),
+      radial-gradient(
+        100% 80% at 0% 0%,
+        color-mix(in srgb, var(--highlight) 5%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        120% 100% at 100% 100%,
+        color-mix(in srgb, var(--accent) 4.5%, transparent),
+        transparent 75%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--accent) 3%, transparent) 0 1px,
+        transparent 1px 42px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--accent) 2.5%, transparent) 0 1px,
+        transparent 1px 42px
+      );
+  }
+
+  #about::before,
+  #about::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #about::before {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--bg) 16%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 12%, transparent) 72%,
+      transparent 100%
+    );
+  }
+
+  #about::after {
+    inset: -8%;
+    opacity: 0.45;
+    background:
+      radial-gradient(
+        50% 45% at 18% 24%,
+        color-mix(in srgb, var(--highlight) 11%, transparent),
+        transparent 74%
+      ),
+      radial-gradient(
+        55% 50% at 82% 76%,
+        color-mix(in srgb, var(--accent) 10%, transparent),
+        transparent 78%
+      );
+    background-size: 135% 135%, 145% 145%;
+    background-position: 18% 24%, 82% 76%;
+    animation: about-background-drift 22s ease-in-out infinite;
+  }
+
+  #about > .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes about-background-drift {
+    0%,
+    100% {
+      background-position: 18% 24%, 82% 76%;
+    }
+    50% {
+      background-position: 22% 28%, 78% 72%;
+    }
+  }
+
+  .about-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .about-content p {
+    font-family: var(--font-text);
+    margin-bottom: 1rem;
+    line-height: 1.85;
+    font-size: 0.96rem;
+  }
+
+  .about-content .lead {
+    font-size: 1.06rem;
+  }
+
+  .about-content :global(strong) {
+    color: var(--highlight);
+    font-weight: 600;
+  }
+
+  .about-sidebar {
+    border-top: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+    padding-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .info-block {
+    margin-bottom: 0;
+  }
+
+  .info-label {
+    display: block;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    color: var(--dim);
+    margin-bottom: 0.35rem;
+    user-select: none;
+  }
+
+  .info-value {
+    font-family: var(--font-text);
+    display: block;
+    font-size: 0.96rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .info-value--big {
+    font-family: var(--font);
+    font-size: 1.35rem;
+    color: var(--highlight);
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    #about {
+      background:
+        linear-gradient(
+          140deg,
+          color-mix(in srgb, var(--bg-alt) 16%, transparent),
+          color-mix(in srgb, var(--bg) 14%, transparent)
+        ),
+        radial-gradient(
+          100% 80% at 0% 0%,
+          color-mix(in srgb, var(--highlight) 3%, transparent),
+          transparent 72%
+        ),
+        radial-gradient(
+          120% 100% at 100% 100%,
+          color-mix(in srgb, var(--accent) 3%, transparent),
+          transparent 77%
+        ),
+        repeating-linear-gradient(
+          0deg,
+          color-mix(in srgb, var(--accent) 2%, transparent) 0 1px,
+          transparent 1px 46px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--accent) 1.25%, transparent) 0 1px,
+          transparent 1px 46px
+        );
+    }
+
+    #about::after {
+      opacity: 0.3;
+      background-size: 145% 145%, 160% 160%;
+      animation-duration: 24s;
+    }
+
+    .about-sidebar {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #about::after {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  function initAgeCounter(): void {
+    const el: HTMLElement | null = document.querySelector<HTMLElement>(
+      '[data-age-counter]',
+    );
+    if (!el) return;
+    if (el.dataset.ageAnimated === 'true') return;
+
+    const targetAge: number = parseInt(el.dataset.ageCounter || '0', 10);
+    if (targetAge <= 0) return;
+
+    // Respect reduced motion
+    const prefersReducedMotion: boolean = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    if (prefersReducedMotion) {
+      el.textContent = targetAge.toString();
+      el.dataset.ageAnimated = 'true';
+      return;
+    }
+
+    const observerOptions: IntersectionObserverInit = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.5,
+    };
+
+    const observer: IntersectionObserver = new IntersectionObserver(
+      (entries: IntersectionObserverEntry[]): void => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+
+          observer.disconnect();
+          el.dataset.ageAnimated = 'true';
+          animateCount(el, targetAge);
+        }
+      },
+      observerOptions,
+    );
+
+    observer.observe(el);
+  }
+
+  function animateCount(el: HTMLElement, target: number): void {
+    const durationMs: number = 1500;
+    const startTime: number = performance.now();
+
+    function easeOutCubic(t: number): number {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function step(now: number): void {
+      const elapsed: number = now - startTime;
+      const progress: number = Math.min(elapsed / durationMs, 1);
+      const easedProgress: number = easeOutCubic(progress);
+      const current: number = Math.round(easedProgress * target);
+
+      el.textContent = current.toString();
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    }
+
+    el.textContent = '0';
+    requestAnimationFrame(step);
+  }
+
+  initAgeCounter();
+  document.addEventListener('astro:after-swap', initAgeCounter);
+</script>

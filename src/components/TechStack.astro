@@ -1,5 +1,6 @@
 ---
 import SectionTitle from './SectionTitle.astro';
+import { Icon } from 'astro-icon/components';
 import { getActiveTech } from '../lib/content';
 
 const techItems = await getActiveTech();
@@ -15,6 +16,8 @@ const techItems = await getActiveTech();
           target="_blank"
           rel="noopener noreferrer"
           class="tech-row"
+          data-tech-accent={item.data.accent ?? ''}
+          style={`--tech-accent: ${item.data.accent ?? 'var(--highlight)'}`}
         >
           <span class="tech-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
           <span class="tech-icon-cell">
@@ -27,7 +30,9 @@ const techItems = await getActiveTech();
             />
           </span>
           <span class="tech-name">{item.data.name}</span>
-          <span class="tech-arrow" aria-hidden="true">-&gt;</span>
+          <span class="tech-arrow" aria-hidden="true">
+            <Icon name="lucide:arrow-right" size={13} />
+          </span>
         </a>
       ))}
     </div>
@@ -35,14 +40,124 @@ const techItems = await getActiveTech();
 </section>
 
 <style>
+  #techstack {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  #techstack::before,
+  #techstack::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #techstack::before {
+    background:
+      linear-gradient(
+        140deg,
+        color-mix(in srgb, var(--bg-alt) 20%, transparent),
+        color-mix(in srgb, var(--bg) 16%, transparent)
+      ),
+      repeating-linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--accent) 2.4%, transparent) 0 1px,
+        transparent 1px 34px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--accent) 1.8%, transparent) 0 1px,
+        transparent 1px 34px
+      );
+    background-position: 0 0, 0 0, 0 0;
+    opacity: 0.85;
+    animation: tech-backplane-drift 30s linear infinite;
+  }
+
+  #techstack::after {
+    inset: -6% -4%;
+    background:
+      linear-gradient(
+        108deg,
+        transparent 24%,
+        color-mix(in srgb, var(--accent) 16%, transparent) 50%,
+        transparent 76%
+      );
+    background-size: 220% 100%;
+    background-position: 120% 0;
+    opacity: 0.24;
+    animation: tech-backplane-sweep 22s ease-in-out infinite;
+  }
+
+  #techstack > .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes tech-backplane-drift {
+    0% {
+      background-position: 0 0, 0 0, 0 0;
+    }
+    100% {
+      background-position: 0 0, 0 34px, 34px 0;
+    }
+  }
+
+  @keyframes tech-backplane-sweep {
+    0%,
+    20% {
+      background-position: 120% 0;
+    }
+    80%,
+    100% {
+      background-position: -20% 0;
+    }
+  }
+
   .tech-table {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 0;
   }
 
-  /* 8% opacity — lower than the standard 10-12% to reduce visual noise in the dense grid */
+  @keyframes tech-scan {
+    0% {
+      background-position: 120% 0;
+    }
+    100% {
+      background-position: -20% 0;
+    }
+  }
+
+  @keyframes tech-arrow-pulse {
+    0% {
+      opacity: 0.2;
+    }
+    40% {
+      opacity: 0.78;
+    }
+    100% {
+      opacity: 0.65;
+    }
+  }
+
+  @keyframes tech-ring-pulse {
+    0% {
+      opacity: 0.2;
+    }
+    45% {
+      opacity: 0.95;
+    }
+    100% {
+      opacity: 0.75;
+    }
+  }
+
   .tech-row {
+    --tech-accent: var(--highlight);
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -50,6 +165,44 @@ const techItems = await getActiveTech();
     text-decoration: none;
     color: var(--text);
     border-right: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .tech-row::before,
+  .tech-row::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .tech-row::before {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--tech-accent) 10%, transparent) 0%,
+      transparent 70%
+    );
+    opacity: 0;
+  }
+
+  .tech-row::after {
+    background: linear-gradient(
+      115deg,
+      transparent 22%,
+      color-mix(in srgb, var(--tech-accent) 24%, transparent) 50%,
+      transparent 78%
+    );
+    background-size: 220% 100%;
+    background-position: 120% 0;
+    opacity: 0;
+  }
+
+  .tech-row > * {
+    position: relative;
+    z-index: 1;
   }
 
   /* Add top border to rows beyond the first row (items 5+) */
@@ -62,26 +215,68 @@ const techItems = await getActiveTech();
     border-right: none;
   }
 
-  .tech-row:hover .tech-name {
-    color: var(--highlight);
+  .tech-row:hover::before,
+  .tech-row:focus-visible::before,
+  .tech-row:active::before {
+    opacity: 1;
   }
 
-  .tech-row:hover .tech-arrow {
-    opacity: 0.7;
-    color: var(--highlight);
+  .tech-row:hover::after,
+  .tech-row:focus-visible::after,
+  .tech-row:active::after {
+    opacity: 0.5;
+    animation: tech-scan 900ms ease-out 1;
+  }
+
+  .tech-row:hover .tech-name,
+  .tech-row:focus-visible .tech-name,
+  .tech-row:active .tech-name {
+    color: color-mix(in srgb, var(--text) 78%, var(--tech-accent) 22%);
+  }
+
+  .tech-row:hover .tech-arrow,
+  .tech-row:focus-visible .tech-arrow,
+  .tech-row:active .tech-arrow {
+    opacity: 0.65;
+    color: var(--tech-accent);
+    animation: tech-arrow-pulse 700ms ease-out 1;
+  }
+
+  .tech-row:focus-visible {
+    outline: 1px solid color-mix(in srgb, var(--tech-accent) 65%, transparent);
+    outline-offset: -1px;
   }
 
   .tech-num {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     color: var(--dim);
     opacity: 0.5;
     font-variant-numeric: tabular-nums;
+    user-select: none;
   }
 
   .tech-icon-cell {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+  }
+
+  .tech-icon-cell::after {
+    content: '';
+    position: absolute;
+    inset: -0.22rem;
+    border: 1px solid color-mix(in srgb, var(--tech-accent) 42%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .tech-row:hover .tech-icon-cell::after,
+  .tech-row:focus-visible .tech-icon-cell::after,
+  .tech-row:active .tech-icon-cell::after {
+    opacity: 0.75;
+    animation: tech-ring-pulse 800ms ease-out 1;
   }
 
   .tech-icon-cell img {
@@ -91,19 +286,40 @@ const techItems = await getActiveTech();
   }
 
   .tech-name {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 600;
   }
 
   .tech-arrow {
-    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.85rem;
+    height: 0.85rem;
     opacity: 0.15;
     text-align: right;
     color: var(--accent);
     margin-left: auto;
+    user-select: none;
+  }
+
+  .tech-arrow :global(svg) {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
   @media (max-width: 768px) {
+    #techstack::before {
+      opacity: 0.62;
+      animation-duration: 36s;
+    }
+
+    #techstack::after {
+      opacity: 0.16;
+      animation-duration: 28s;
+    }
+
     .tech-table {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -126,6 +342,25 @@ const techItems = await getActiveTech();
     /* Remove right border on last column (every 2nd) */
     .tech-row:nth-child(2n) {
       border-right: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #techstack::before,
+    #techstack::after {
+      animation: none;
+    }
+
+    .tech-row:hover::after,
+    .tech-row:focus-visible::after,
+    .tech-row:active::after,
+    .tech-row:hover .tech-arrow,
+    .tech-row:focus-visible .tech-arrow,
+    .tech-row:active .tech-arrow,
+    .tech-row:hover .tech-icon-cell::after,
+    .tech-row:focus-visible .tech-icon-cell::after,
+    .tech-row:active .tech-icon-cell::after {
+      animation: none;
     }
   }
 </style>
