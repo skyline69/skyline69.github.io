@@ -1,11 +1,94 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Highlights from '../components/Highlights.astro';
+import Projects from '../components/Projects.astro';
+import TechStack from '../components/TechStack.astro';
+import SectionDivider from '../components/SectionDivider.astro';
 ---
 
 <Layout>
-	<Welcome />
+  <Nav />
+  <main>
+    <Hero />
+    <div class="block-grid">
+      <!-- Row 1: About | Highlights -->
+      <About />
+      <Highlights />
+      <!-- Divider -->
+      <div class="divider-row">
+        <SectionDivider />
+      </div>
+      <!-- Row 2: TechStack (full-width compact grid) -->
+      <TechStack />
+      <!-- Divider -->
+      <div class="divider-row">
+        <SectionDivider />
+      </div>
+      <!-- Row 3: Projects (full-width horizontal cards) -->
+      <Projects />
+    </div>
+  </main>
+  <footer>
+    <div class="footer-inner container">
+      <span class="footer-handle">
+        <a href="https://github.com/skyline69" target="_blank" rel="noopener noreferrer">@skyline69</a>
+      </span>
+      <span class="footer-copy">&copy; {new Date().getFullYear()} Efe</span>
+      <span class="footer-built">
+        Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a>
+      </span>
+    </div>
+  </footer>
 </Layout>
+
+<style>
+  footer {
+    border-top: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
+    padding: 2rem 0;
+    font-size: 0.75rem;
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-handle a {
+    color: var(--highlight);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .footer-handle a:hover {
+    text-decoration: underline;
+  }
+
+  .footer-copy {
+    color: var(--dim);
+  }
+
+  .footer-built {
+    color: var(--dim);
+  }
+
+  .footer-built a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .footer-built a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .footer-inner {
+      flex-direction: column;
+      gap: 0.75rem;
+      text-align: center;
+    }
+  }
+</style>
