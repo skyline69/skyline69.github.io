@@ -41,6 +41,7 @@ const techItems = await getActiveTech();
     gap: 0;
   }
 
+  /* 8% opacity — lower than the standard 10-12% to reduce visual noise in the dense grid */
   .tech-row {
     display: flex;
     align-items: center;
@@ -48,19 +49,17 @@ const techItems = await getActiveTech();
     padding: 0.65rem 0.5rem;
     text-decoration: none;
     color: var(--text);
-    border-bottom: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
     border-right: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
   }
 
-  /* Remove right border on every 4th item (end of row) */
-  .tech-row:nth-child(4n) {
-    border-right: none;
+  /* Add top border to rows beyond the first row (items 5+) */
+  .tech-row:nth-child(n+5) {
+    border-top: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
   }
 
-  /* Remove bottom border on the last row of items.
-     With 14 items in a 4-col grid, the last row starts at item 13. */
-  .tech-row:nth-last-child(-n+2) {
-    border-bottom: none;
+  /* Remove right border on last column */
+  .tech-row:nth-child(4n) {
+    border-right: none;
   }
 
   .tech-row:hover .tech-name {
@@ -109,15 +108,22 @@ const techItems = await getActiveTech();
       grid-template-columns: repeat(2, 1fr);
     }
 
-    /* Adjust last-row border removal for 2 columns */
-    .tech-row:nth-last-child(-n+2) {
-      border-bottom: none;
+    /* Reset desktop row border */
+    .tech-row:nth-child(n+5) {
+      border-top: none;
     }
 
+    /* Add top border to rows beyond the first row (items 3+) */
+    .tech-row:nth-child(n+3) {
+      border-top: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    /* Reset desktop column border */
     .tech-row:nth-child(4n) {
       border-right: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
     }
 
+    /* Remove right border on last column (every 2nd) */
     .tech-row:nth-child(2n) {
       border-right: none;
     }
