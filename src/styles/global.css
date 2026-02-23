@@ -1,0 +1,208 @@
+/* ── Fira Code Self-Hosted ── */
+
+@font-face {
+  font-family: 'Fira Code';
+  src: url('/fonts/fira-code/FiraCode-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fira Code';
+  src: url('/fonts/fira-code/FiraCode-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fira Code';
+  src: url('/fonts/fira-code/FiraCode-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Design Tokens ── */
+
+:root {
+  --bg: #3C3633;
+  --bg-alt: #332F2D;
+  --panel: #747264;
+  --accent: #E0CCBE;
+  --highlight: #C9A87C;
+  --dim: #8A8477;
+  --text: #EEEDEB;
+
+  --font: 'Fira Code', monospace;
+  --max-width: 72rem;
+  --gap: 1.5rem;
+  --section-gap: 2.5rem;
+  --radius: 0;
+}
+
+/* ── Reset & Base ── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Typography ── */
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.25rem; }
+
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Layout Primitives ── */
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--gap);
+}
+
+/* ── Block Grid ── */
+
+.block-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  gap: 0;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--gap);
+}
+
+.block-grid .divider-row {
+  grid-column: 1 / -1;
+}
+
+.block-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+/* ── Section Panels ── */
+
+.section {
+  padding: var(--section-gap);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+  height: 100%;
+  margin: -0.5px; /* collapse shared borders */
+}
+
+.section .container {
+  padding: 0;
+  max-width: none;
+}
+
+/* ── Card ── */
+
+.card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: var(--gap);
+}
+
+/* ── Grid Utilities ── */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap);
+}
+
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: var(--gap);
+}
+
+/* ── Typing Cursor ── */
+
+.typing-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+  font-weight: 400;
+  color: var(--highlight);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── Reduced Motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .typing-cursor::after {
+    animation: none;
+    content: '';
+  }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 768px) {
+  :root {
+    --section-gap: 1.5rem;
+    --gap: 1rem;
+  }
+
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.35rem; }
+
+  .block-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,125 @@
+---
+import SectionTitle from './SectionTitle.astro';
+import { getActiveTech } from '../lib/content';
+
+const techItems = await getActiveTech();
+---
+
+<section class="section full-width" id="techstack">
+  <div class="container">
+    <SectionTitle text="My Techstack" />
+    <div class="tech-table">
+      {techItems.map((item, i) => (
+        <a
+          href={item.data.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="tech-row"
+        >
+          <span class="tech-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <span class="tech-icon-cell">
+            <img
+              src={item.data.icon}
+              alt=""
+              width="24"
+              height="24"
+              loading="lazy"
+            />
+          </span>
+          <span class="tech-name">{item.data.name}</span>
+          <span class="tech-arrow" aria-hidden="true">-&gt;</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .tech-table {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  .tech-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.5rem;
+    text-decoration: none;
+    color: var(--text);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
+  /* Remove right border on every 4th item (end of row) */
+  .tech-row:nth-child(4n) {
+    border-right: none;
+  }
+
+  /* Remove bottom border on the last row of items.
+     With 14 items in a 4-col grid, the last row starts at item 13. */
+  .tech-row:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+
+  .tech-row:hover .tech-name {
+    color: var(--highlight);
+  }
+
+  .tech-row:hover .tech-arrow {
+    opacity: 0.7;
+    color: var(--highlight);
+  }
+
+  .tech-num {
+    font-size: 0.6rem;
+    color: var(--dim);
+    opacity: 0.5;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tech-icon-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tech-icon-cell img {
+    width: 1.5rem;
+    height: 1.5rem;
+    object-fit: contain;
+  }
+
+  .tech-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .tech-arrow {
+    font-size: 0.7rem;
+    opacity: 0.15;
+    text-align: right;
+    color: var(--accent);
+    margin-left: auto;
+  }
+
+  @media (max-width: 768px) {
+    .tech-table {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Adjust last-row border removal for 2 columns */
+    .tech-row:nth-last-child(-n+2) {
+      border-bottom: none;
+    }
+
+    .tech-row:nth-child(4n) {
+      border-right: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    .tech-row:nth-child(2n) {
+      border-right: none;
+    }
+  }
+</style>
