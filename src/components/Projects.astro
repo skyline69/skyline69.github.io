@@ -1,0 +1,150 @@
+---
+import SectionTitle from './SectionTitle.astro';
+import { getActiveProjects } from '../lib/content';
+
+const projects = await getActiveProjects();
+---
+
+<section class="section full-width" id="projects">
+  <div class="container">
+    <SectionTitle text="My Projects" />
+    <div class="projects-list">
+      {projects.map((project, i) => (
+        <a
+          href={project.data.repoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="project-card"
+        >
+          <div class="project-image">
+            <img
+              src={project.data.image}
+              alt={`Screenshot of ${project.data.title}`}
+              loading="lazy"
+            />
+          </div>
+          <div class="project-body">
+            <div class="project-header">
+              <span class="project-number" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3>{project.data.title}<span class="arrow" aria-hidden="true"> -&gt;</span></h3>
+            </div>
+            <p>{project.data.description}</p>
+            {project.data.tags.length > 0 && (
+              <div class="project-tags">
+                {project.data.tags.map((tag: string) => (
+                  <span class="tag">{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .project-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+    text-decoration: none;
+    color: var(--text);
+    padding-bottom: 2rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+
+  .project-card:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .project-card:hover .arrow {
+    color: var(--highlight);
+    opacity: 1;
+  }
+
+  .project-image {
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+
+  .project-image img {
+    width: 100%;
+    aspect-ratio: 16/10;
+    object-fit: cover;
+    display: block;
+  }
+
+  .project-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .project-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .project-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--highlight);
+    opacity: 0.2;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .project-header h3 {
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .arrow {
+    opacity: 0.3;
+    font-weight: 400;
+    color: var(--dim);
+  }
+
+  .project-body p {
+    font-size: 0.8rem;
+    color: var(--accent);
+    opacity: 0.8;
+    line-height: 1.7;
+  }
+
+  .project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--highlight);
+    border: 1px solid var(--highlight);
+    padding: 0.15rem 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .project-card {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>
