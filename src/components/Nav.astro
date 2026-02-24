@@ -240,11 +240,17 @@ const links = [
     padding: 0.75rem 0;
     background: transparent;
     border-bottom: 1px solid transparent;
+    backdrop-filter: blur(0px);
+    transition:
+      background 320ms ease,
+      border-bottom-color 320ms ease,
+      backdrop-filter 320ms ease;
   }
 
   .site-nav.nav--solid {
-    background: var(--bg-alt);
+    background: color-mix(in srgb, var(--bg-alt) 80%, transparent);
     border-bottom-color: color-mix(in srgb, var(--accent) 10%, transparent);
+    backdrop-filter: blur(12px);
   }
 
   .nav-inner {
@@ -319,6 +325,12 @@ const links = [
     .nav-links a {
       font-size: 0.68rem;
       letter-spacing: 0.04em;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-nav {
+      transition: none;
     }
   }
 </style>

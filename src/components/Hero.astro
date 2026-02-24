@@ -1,45 +1,12 @@
 ---
 import TypingText from './TypingText.astro';
+import AsciiScene from './AsciiScene.astro';
 import { Icon } from 'astro-icon/components';
-
-/**
- * Build rows of random code-like characters that tile the hero background.
- * Two identical blocks stacked — the animation scrolls one block height
- * then resets seamlessly for an infinite upward scroll.
- *
- * 200 chars/row at small font + letter-spacing guarantees full-width
- * coverage on any viewport. 40 rows gives enough height for the scroll
- * to loop without visible gaps.
- */
-const glyphs = '01{}[]<>/\\|;:=+-._#@&*~$%?!^abcdef0123456789ABCDEF';
-const cols = 200;
-const rows = 40;
-
-function randomChar(): string {
-  return Math.random() < 0.35
-    ? '\u00A0'  // non-breaking space for breathing room
-    : glyphs[Math.floor(Math.random() * glyphs.length)];
-}
-
-const lines: string[] = [];
-for (let r = 0; r < rows; r++) {
-  let line = '';
-  for (let c = 0; c < cols; c++) {
-    line += randomChar();
-  }
-  lines.push(line);
-}
-const block = lines.join('\n');
 ---
 
 <section class="hero">
-  <!-- Scrolling character field -->
-  <div class="char-field" aria-hidden="true">
-    <div class="char-scroll">
-      <pre class="char-block">{block}</pre>
-      <pre class="char-block">{block}</pre>
-    </div>
-  </div>
+  <!-- ASCII 3D background -->
+  <AsciiScene />
 
   <!-- Grain texture -->
   <svg aria-hidden="true" style="position:absolute;width:0;height:0;">
@@ -117,49 +84,20 @@ const block = lines.join('\n');
     background: var(--bg);
   }
 
-  /* ── Scrolling character field ── */
+  /* ── Vignette overlay (darkens edges, focuses center) ── */
 
-  .char-field {
+  .hero::after {
+    content: '';
     position: absolute;
     inset: 0;
-    overflow: hidden;
+    z-index: 1;
     pointer-events: none;
-    z-index: 0;
-  }
-
-  .char-scroll {
-    animation: scroll-chars 50s linear infinite;
-  }
-
-  .char-block {
-    font-family: var(--font);
-    font-size: 0.75rem;
-    line-height: 2.4;
-    letter-spacing: 0.3em;
-    color: var(--accent);
-    opacity: 0.035;
-    margin: 0;
-    padding: 0;
-    white-space: pre;
-    user-select: none;
-  }
-
-  @keyframes scroll-chars {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(-50%);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .char-scroll {
-      animation: none;
-    }
-    .char-block {
-      opacity: 0.025;
-    }
+    background: radial-gradient(
+      ellipse at 50% 50%,
+      transparent 30%,
+      color-mix(in srgb, var(--bg) 70%, transparent) 70%,
+      var(--bg) 100%
+    );
   }
 
   /* ── Grain overlay ── */
@@ -220,6 +158,7 @@ const block = lines.join('\n');
     opacity: 0.8;
     margin-bottom: 0.5rem;
     letter-spacing: 0.05em;
+    text-shadow: 0 0 1.5rem var(--bg), 0 0 3rem var(--bg);
   }
 
   h1 {
@@ -228,17 +167,19 @@ const block = lines.join('\n');
     color: var(--text);
     line-height: 1.1;
     margin-bottom: 1rem;
+    text-shadow: 0 0 2.5rem var(--bg), 0 0 5rem var(--bg);
   }
 
   .strapline {
     font-size: 1.35rem;
     color: var(--accent);
     min-height: 2rem;
+    text-shadow: 0 0 1.5rem var(--bg), 0 0 3rem var(--bg);
   }
 
   .hero-game-card {
     border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
-    background: color-mix(in srgb, var(--bg-alt) 44%, transparent);
+    background: color-mix(in srgb, var(--bg-alt) 72%, transparent);
     padding: 1.35rem;
     display: grid;
     gap: 0.8rem;

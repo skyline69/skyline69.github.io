@@ -1,0 +1,328 @@
+---
+/**
+ * Three.js ASCII-rendered torus knot background for the hero section.
+ * Lazy-loads Three.js + AsciiEffect, renders a slowly rotating torus knot
+ * through an ASCII post-processing pass. Mouse position applies subtle
+ * parallax to the camera. Falls back to a static character grid on mobile,
+ * reduced-motion, or missing WebGL.
+ */
+
+const glyphs: string = '01{}[]<>/\\|;:=+-._#@&*~$%?!^abcdef0123456789ABCDEF';
+const cols: number = 200;
+const rows: number = 40;
+
+function randomChar(): string {
+  return Math.random() < 0.35
+    ? '\u00A0'
+    : glyphs[Math.floor(Math.random() * glyphs.length)];
+}
+
+const lines: string[] = [];
+for (let r: number = 0; r < rows; r++) {
+  let line: string = '';
+  for (let c: number = 0; c < cols; c++) {
+    line += randomChar();
+  }
+  lines.push(line);
+}
+const fallbackBlock: string = lines.join('\n');
+---
+
+<div id="ascii-scene" class="ascii-scene" aria-hidden="true">
+  <pre class="ascii-fallback">{fallbackBlock}</pre>
+</div>
+
+<style>
+  .ascii-scene {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Static fallback (visible until Three.js replaces it) ── */
+
+  .ascii-fallback {
+    font-family: var(--font);
+    font-size: 0.75rem;
+    line-height: 2.4;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    opacity: 0.035;
+    margin: 0;
+    padding: 0;
+    white-space: pre;
+    user-select: none;
+  }
+
+  /* ── AsciiEffect output styling ── */
+
+  .ascii-scene :global(table) {
+    font-family: var(--font);
+    opacity: 0.14;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ascii-fallback {
+      opacity: 0.025;
+    }
+  }
+</style>
+
+<script>
+  // ── Three.js ASCII Scene ──
+
+  /** Marker type for the AsciiEffect's generated DOM element */
+  interface AsciiEffectDom extends HTMLElement {
+    style: CSSStyleDeclaration;
+  }
+
+  /** Minimal subset of AsciiEffect we use */
+  interface AsciiEffectInstance {
+    domElement: AsciiEffectDom;
+    setSize: (w: number, h: number) => void;
+    render: (scene: import('three').Scene, camera: import('three').Camera) => void;
+  }
+
+  /** State bundle for cleanup */
+  interface AsciiState {
+    renderer: import('three').WebGLRenderer;
+    effect: AsciiEffectInstance;
+    scene: import('three').Scene;
+    camera: import('three').PerspectiveCamera;
+    geometry: import('three').TorusKnotGeometry;
+    material: import('three').MeshPhongMaterial;
+    mesh: import('three').Mesh;
+    container: HTMLElement;
+    resizeObserver: ResizeObserver;
+    onMouseMove: (e: MouseEvent) => void;
+  }
+
+  let state: AsciiState | null = null;
+
+  // ── Mouse tracking ──
+
+  let mouseX: number = 0;
+  let mouseY: number = 0;
+  let targetMouseX: number = 0;
+  let targetMouseY: number = 0;
+
+  // ── Init ──
+
+  async function initAsciiScene(): Promise<void> {
+    const container: HTMLElement | null = document.getElementById('ascii-scene');
+    if (!container) return;
+    if (container.dataset.asciiInit === 'true') return;
+
+    // Guard: reduced motion
+    const reducedMotion: boolean = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
+    // Guard: mobile
+    const isMobile: boolean = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) return;
+
+    // Guard: low-end device hint
+    const nav: Navigator = window.navigator;
+    if ('deviceMemory' in nav && (nav as Navigator & { deviceMemory: number }).deviceMemory < 4) return;
+
+    container.dataset.asciiInit = 'true';
+
+    // Lazy-load Three.js
+    const [THREE, { AsciiEffect }] = await Promise.all([
+      import('three'),
+      import('three/addons/effects/AsciiEffect.js'),
+    ]);
+
+    // ── Renderer ──
+
+    const renderer: import('three').WebGLRenderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: false,
+    });
+
+    const width: number = container.clientWidth;
+    const height: number = container.clientHeight;
+
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(1);
+
+    // ── Scene ──
+
+    const scene: import('three').Scene = new THREE.Scene();
+
+    // ── Camera ──
+
+    const camera: import('three').PerspectiveCamera = new THREE.PerspectiveCamera(
+      70,
+      width / height,
+      1,
+      1000,
+    );
+    camera.position.set(0, 150, 500);
+
+    // ── Lighting (warm tones matching the palette) ──
+
+    const light1: import('three').PointLight = new THREE.PointLight(0xE0CCBE, 3, 0, 0);
+    light1.position.set(500, 500, 500);
+    scene.add(light1);
+
+    const light2: import('three').PointLight = new THREE.PointLight(0xC9A87C, 1, 0, 0);
+    light2.position.set(-500, -500, -500);
+    scene.add(light2);
+
+    // Cool fill light from below-front for richer shading contrast
+    const light3: import('three').PointLight = new THREE.PointLight(0x8A8477, 0.6, 0, 0);
+    light3.position.set(0, -400, 300);
+    scene.add(light3);
+
+    // ── Torus Knot ──
+
+    const geometry: import('three').TorusKnotGeometry = new THREE.TorusKnotGeometry(
+      200, // radius
+      60,  // tube
+      100, // tubular segments
+      12,  // radial segments
+    );
+
+    const material: import('three').MeshPhongMaterial = new THREE.MeshPhongMaterial({
+      flatShading: true,
+    });
+
+    const mesh: import('three').Mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    // ── ASCII Effect ──
+
+    const effect: AsciiEffectInstance = new AsciiEffect(
+      renderer,
+      ' .:-=+*#%@',
+      { invert: true, resolution: 0.12 },
+    ) as AsciiEffectInstance;
+
+    effect.setSize(width, height);
+    effect.domElement.style.color = '';
+    effect.domElement.style.backgroundColor = 'transparent';
+
+    // Remove the static fallback and insert the ASCII canvas
+    const fallback: HTMLPreElement | null = container.querySelector<HTMLPreElement>('.ascii-fallback');
+    if (fallback) fallback.remove();
+    container.appendChild(effect.domElement);
+
+    // ── Mouse tracking ──
+
+    const onMouseMove = (e: MouseEvent): void => {
+      targetMouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      targetMouseY = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+    document.addEventListener('mousemove', onMouseMove);
+
+    // ── Resize ──
+
+    const resizeObserver: ResizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      const entry: ResizeObserverEntry | undefined = entries[0];
+      if (!entry) return;
+      const { width: w, height: h } = entry.contentRect;
+      if (w === 0 || h === 0) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      effect.setSize(w, h);
+    });
+    resizeObserver.observe(container);
+
+    // ── Intersection Observer (pause when off-screen) ──
+
+    let isVisible: boolean = true;
+    const visibilityObserver: IntersectionObserver = new IntersectionObserver(
+      (entries: IntersectionObserverEntry[]) => {
+        isVisible = entries[0]?.isIntersecting ?? true;
+      },
+      { threshold: 0 },
+    );
+    visibilityObserver.observe(container);
+
+    // ── Animation loop ──
+
+    const startTime: number = Date.now();
+    const LERP_FACTOR: number = 0.04;
+    const MOUSE_RANGE: number = 30;
+
+    renderer.setAnimationLoop((): void => {
+      if (!isVisible) return;
+
+      const timer: number = Date.now() - startTime;
+
+      // Rotate torus knot slowly (~15s per revolution)
+      mesh.rotation.x = timer * 0.0004;
+      mesh.rotation.z = timer * 0.0003;
+
+      // Subtle breathing scale oscillation
+      const breathe: number = 1 + Math.sin(timer * 0.001) * 0.02;
+      mesh.scale.setScalar(breathe);
+
+      // Smooth mouse parallax on camera
+      mouseX += (targetMouseX - mouseX) * LERP_FACTOR;
+      mouseY += (targetMouseY - mouseY) * LERP_FACTOR;
+      camera.position.x = mouseX * MOUSE_RANGE;
+      camera.position.y = 150 + mouseY * -MOUSE_RANGE;
+
+      camera.lookAt(scene.position);
+      effect.render(scene, camera);
+    });
+
+    // ── Store state for cleanup ──
+
+    state = {
+      renderer,
+      effect,
+      scene,
+      camera,
+      geometry,
+      material,
+      mesh,
+      container,
+      resizeObserver,
+      onMouseMove,
+    };
+  }
+
+  function destroyAsciiScene(): void {
+    if (!state) return;
+
+    state.renderer.setAnimationLoop(null);
+    state.resizeObserver.disconnect();
+    document.removeEventListener('mousemove', state.onMouseMove);
+
+    state.geometry.dispose();
+    state.material.dispose();
+    state.renderer.dispose();
+
+    // Remove the ASCII DOM element
+    if (state.effect.domElement.parentNode) {
+      state.effect.domElement.parentNode.removeChild(state.effect.domElement);
+    }
+
+    // Reset init flag so it can re-initialize after swap
+    state.container.dataset.asciiInit = '';
+
+    state = null;
+    mouseX = 0;
+    mouseY = 0;
+    targetMouseX = 0;
+    targetMouseY = 0;
+  }
+
+  // ── Lifecycle ──
+
+  void initAsciiScene();
+  document.addEventListener('astro:after-swap', () => void initAsciiScene());
+  document.addEventListener('astro:before-swap', destroyAsciiScene);
+</script>

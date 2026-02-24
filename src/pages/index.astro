@@ -7,6 +7,7 @@ import Highlights from '../components/Highlights.astro';
 import Projects from '../components/Projects.astro';
 import TechStack from '../components/TechStack.astro';
 import SectionDivider from '../components/SectionDivider.astro';
+import { Icon } from 'astro-icon/components';
 ---
 
 <Layout>
@@ -31,7 +32,7 @@ import SectionDivider from '../components/SectionDivider.astro';
       <Projects />
     </div>
   </main>
-  <footer>
+  <footer id="site-footer">
     <div class="footer-inner container">
       <span class="footer-handle">
         <a href="https://github.com/skyline69" target="_blank" rel="noopener noreferrer">@skyline69</a>
@@ -42,13 +43,24 @@ import SectionDivider from '../components/SectionDivider.astro';
       </span>
     </div>
   </footer>
+
+  <!-- Scroll-to-top button (visible only when footer is in view) -->
+  <button
+    type="button"
+    class="scroll-top"
+    id="scroll-top"
+    aria-label="Scroll to top"
+  >
+    <Icon name="lucide:chevron-up" size={18} />
+  </button>
 </Layout>
 
 <style>
   footer {
     border-top: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
-    padding: 2rem 0;
+    padding: 1rem 0;
     font-size: 0.75rem;
+    background: var(--bg);
   }
 
   .footer-inner {
@@ -84,11 +96,87 @@ import SectionDivider from '../components/SectionDivider.astro';
     text-decoration: underline;
   }
 
+  /* ── Scroll-to-top button ── */
+
+  .scroll-top {
+    position: fixed;
+    top: 3.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 90;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    background: color-mix(in srgb, var(--bg-alt) 85%, transparent);
+    backdrop-filter: blur(8px);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  .scroll-top.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .scroll-top:hover {
+    color: var(--highlight);
+    border-color: color-mix(in srgb, var(--highlight) 72%, transparent);
+  }
+
+  .scroll-top :global(svg) {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-top {
+      transition: none;
+    }
+  }
+
   @media (max-width: 768px) {
     .footer-inner {
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.5rem;
       text-align: center;
     }
   }
 </style>
+
+<script>
+  function initScrollTop(): void {
+    const btn: HTMLButtonElement | null = document.querySelector<HTMLButtonElement>('#scroll-top');
+    const footer: HTMLElement | null = document.getElementById('site-footer');
+    if (!btn || !footer) return;
+    if (btn.dataset.scrollTopInit === 'true') return;
+    btn.dataset.scrollTopInit = 'true';
+
+    const observer: IntersectionObserver = new IntersectionObserver(
+      (entries: IntersectionObserverEntry[]): void => {
+        const entry: IntersectionObserverEntry | undefined = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting) {
+          btn.classList.add('is-visible');
+        } else {
+          btn.classList.remove('is-visible');
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(footer);
+
+    btn.addEventListener('click', (): void => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  initScrollTop();
+  document.addEventListener('astro:after-swap', initScrollTop);
+</script>
