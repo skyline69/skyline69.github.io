@@ -3,8 +3,9 @@ import SectionTitle from './SectionTitle.astro';
 import { Icon } from 'astro-icon/components';
 import { Image } from 'astro:assets';
 import { getActiveTech } from '../lib/content';
+import type { CollectionEntry } from 'astro:content';
 
-const techItems = await getActiveTech();
+const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
 ---
 
 <section class="section full-width" id="techstack">

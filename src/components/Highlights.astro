@@ -1,8 +1,9 @@
 ---
 import SectionTitle from './SectionTitle.astro';
 import { getActiveHighlights } from '../lib/content';
+import type { CollectionEntry } from 'astro:content';
 
-const highlights = await getActiveHighlights();
+const highlights: CollectionEntry<'highlights'>[] = await getActiveHighlights();
 ---
 
 <section class="section" id="highlights">

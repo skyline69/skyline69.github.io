@@ -323,6 +323,6 @@ const fallbackBlock: string = lines.join('\n');
   // ── Lifecycle ──
 
   void initAsciiScene();
-  document.addEventListener('astro:after-swap', () => void initAsciiScene());
+  document.addEventListener('astro:after-swap', (): void => { void initAsciiScene(); });
   document.addEventListener('astro:before-swap', destroyAsciiScene);
 </script>

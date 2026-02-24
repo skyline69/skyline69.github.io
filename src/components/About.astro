@@ -2,10 +2,11 @@
 import SectionTitle from './SectionTitle.astro';
 import { getProfile } from '../lib/content';
 import { getAge } from '../lib/date';
+import type { CollectionEntry } from 'astro:content';
 
-const profile = await getProfile();
-const { birthDate, summary, locationLine, languages } = profile.data;
-const age = getAge(birthDate);
+const profile: CollectionEntry<'profile'> = await getProfile();
+const { birthDate, summary, locationLine, languages }: CollectionEntry<'profile'>['data'] = profile.data;
+const age: number = getAge(birthDate);
 ---
 
 <section class="section" id="about">

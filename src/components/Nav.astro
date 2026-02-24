@@ -1,5 +1,10 @@
 ---
-const links = [
+interface NavLink {
+  label: string;
+  href: string;
+}
+
+const links: NavLink[] = [
   { label: 'About & Highlights', href: '#about' },
   { label: 'Tech', href: '#techstack' },
   { label: 'Projects', href: '#projects' },

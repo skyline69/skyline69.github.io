@@ -599,14 +599,14 @@ import { Icon } from 'astro-icon/components';
   const MIN_LOADER_VISIBLE_MS: number = 900;
 
   function waitNextFrame(): Promise<void> {
-    return new Promise((resolve) => {
-      window.requestAnimationFrame(() => resolve());
+    return new Promise((resolve: () => void) => {
+      window.requestAnimationFrame((): void => resolve());
     });
   }
 
   function waitMs(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-      window.setTimeout(() => resolve(), ms);
+    return new Promise((resolve: () => void) => {
+      window.setTimeout((): void => resolve(), ms);
     });
   }
 
@@ -711,7 +711,7 @@ import { Icon } from 'astro-icon/components';
 
     modal.addEventListener('animationend', onAnimationEnd, { once: true });
 
-    window.setTimeout(() => {
+    window.setTimeout((): void => {
       if (modal.dataset.closing !== 'true') return;
       if (modal.open) modal.close();
     }, 220);
@@ -734,7 +734,7 @@ import { Icon } from 'astro-icon/components';
 
     heroRoot.dataset.gameModalInit = 'true';
 
-    openButton.addEventListener('click', () => {
+    openButton.addEventListener('click', (): void => {
       const host: HTMLElement | null = document.getElementById('hero-tetris-app');
       if (host) setHostLoading(host, true);
       if (!modal.open) modal.showModal();
@@ -745,7 +745,7 @@ import { Icon } from 'astro-icon/components';
       void mountTetris();
     });
 
-    closeButton.addEventListener('click', () => {
+    closeButton.addEventListener('click', (): void => {
       closeModalWithAnimation(modal);
     });
 
@@ -758,7 +758,7 @@ import { Icon } from 'astro-icon/components';
       closeModalWithAnimation(modal);
     });
 
-    modal.addEventListener('close', () => {
+    modal.addEventListener('close', (): void => {
       modal.classList.remove('is-closing');
       delete modal.dataset.closing;
       teardownTetris();

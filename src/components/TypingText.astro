@@ -37,32 +37,32 @@ const {
 >{texts[0]}</span>
 
 <script>
-  function initTyping() {
-    document.querySelectorAll<HTMLElement>('[data-texts]').forEach((el) => {
+  function initTyping(): void {
+    document.querySelectorAll<HTMLElement>('[data-texts]').forEach((el: HTMLElement): void => {
       if (el.dataset.initialized) return;
       el.dataset.initialized = 'true';
 
-      const prefersReducedMotion = window.matchMedia(
+      const prefersReducedMotion: boolean = window.matchMedia(
         '(prefers-reduced-motion: reduce)',
       ).matches;
 
       if (prefersReducedMotion) return; // text already in DOM, do nothing
 
       const texts: string[] = JSON.parse(el.dataset.texts || '[]');
-      const loop = el.dataset.loop === 'true';
-      const speed = parseInt(el.dataset.speed || '70', 10);
-      const pauseMs = parseInt(el.dataset.pause || '1500', 10);
+      const loop: boolean = el.dataset.loop === 'true';
+      const speed: number = parseInt(el.dataset.speed || '70', 10);
+      const pauseMs: number = parseInt(el.dataset.pause || '1500', 10);
 
       if (texts.length === 0) return;
 
-      let phraseIndex = 0;
-      let charIndex = 0;
-      let isDeleting = false;
+      let phraseIndex: number = 0;
+      let charIndex: number = 0;
+      let isDeleting: boolean = false;
 
       el.textContent = '';
 
-      function tick() {
-        const current = texts[phraseIndex];
+      function tick(): void {
+        const current: string = texts[phraseIndex];
 
         if (!isDeleting) {
           // Typing forward
@@ -75,7 +75,7 @@ const {
               return;
             }
             // Pause then start deleting
-            setTimeout(() => {
+            setTimeout((): void => {
               isDeleting = true;
               tick();
             }, pauseMs);
@@ -92,7 +92,7 @@ const {
           }
         }
 
-        const delay = isDeleting ? speed / 2 : speed;
+        const delay: number = isDeleting ? speed / 2 : speed;
         setTimeout(tick, delay);
       }
 
