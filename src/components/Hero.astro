@@ -40,13 +40,13 @@ import { Icon } from 'astro-icon/components';
       <aside class="hero-game-card" aria-labelledby="hero-game-title">
         <h2 id="hero-game-title">Want to play a game?</h2>
         <p class="hero-game-text">
-          Launch a Rust + WebAssembly Tetris build directly in the page.
+          Launch a Rust + WebAssembly block game directly in the page.
         </p>
         <button type="button" class="hero-game-button" data-open-game>
           <span class="hero-game-button-icon" aria-hidden="true">
             <Icon name="lucide:gamepad-2" size={18} />
           </span>
-          Open Tetris
+          Open Block Game
         </button>
       </aside>
     </div>
@@ -55,13 +55,13 @@ import { Icon } from 'astro-icon/components';
   <dialog class="hero-game-modal" id="hero-game-modal" aria-labelledby="hero-game-modal-title">
     <div class="hero-game-modal-shell">
       <header class="hero-game-modal-header">
-        <h3 id="hero-game-modal-title">Tetris</h3>
+        <h3 id="hero-game-modal-title">Block Game</h3>
         <button type="button" class="hero-game-modal-close" data-close-game aria-label="Close game window">
           <Icon name="lucide:x" size={18} />
         </button>
       </header>
       <p class="hero-game-modal-help">Arrow keys move and rotate. Space drops.</p>
-      <div id="hero-tetris-app" class="hero-game-host" aria-label="Tetris game area"></div>
+      <div id="hero-tetris-app" class="hero-game-host" aria-label="Block game area"></div>
     </div>
   </dialog>
 
