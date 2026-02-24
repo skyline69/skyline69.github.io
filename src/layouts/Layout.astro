@@ -18,9 +18,17 @@ const { title = 'Efe — Developer' } = Astro.props;
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content="Efe's developer portfolio — projects, tech stack, and more." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content="Efe's developer portfolio — projects, tech stack, and more." />
+    <meta property="og:url" content="https://dasguney.dev" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content="Efe's developer portfolio — projects, tech stack, and more." />
     <title>{title}</title>
   </head>
   <body>
+    <a href="#main" class="skip-link">Skip to content</a>
     <CodeRain />
     <slot />
   </body>

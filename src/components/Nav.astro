@@ -270,6 +270,16 @@ const links = [
     letter-spacing: 0.05em;
   }
 
+  .nav-logo:hover {
+    color: var(--text);
+  }
+
+  .nav-logo:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+    color: var(--text);
+  }
+
   .nav-links {
     display: flex;
     list-style: none;
@@ -289,6 +299,12 @@ const links = [
     color: var(--text);
   }
 
+  .nav-links a:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+    color: var(--text);
+  }
+
   .nav-links a.nav-active {
     color: var(--highlight);
   }
@@ -304,6 +320,12 @@ const links = [
     border-color: color-mix(in srgb, var(--highlight) 72%, transparent);
     text-decoration: underline;
     text-underline-offset: 0.2em;
+  }
+
+  .nav-links a.nav-link-github:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+    color: var(--highlight);
   }
 
   @media (max-width: 768px) {

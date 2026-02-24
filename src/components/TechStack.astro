@@ -217,26 +217,22 @@ const techItems = await getActiveTech();
     border-right: none;
   }
 
-  .tech-row:hover::before,
   .tech-row:focus-visible::before,
   .tech-row:active::before {
     opacity: 1;
   }
 
-  .tech-row:hover::after,
   .tech-row:focus-visible::after,
   .tech-row:active::after {
     opacity: 0.5;
     animation: tech-scan 900ms ease-out 1;
   }
 
-  .tech-row:hover .tech-name,
   .tech-row:focus-visible .tech-name,
   .tech-row:active .tech-name {
     color: color-mix(in srgb, var(--text) 78%, var(--tech-accent) 22%);
   }
 
-  .tech-row:hover .tech-arrow,
   .tech-row:focus-visible .tech-arrow,
   .tech-row:active .tech-arrow {
     opacity: 0.65;
@@ -247,6 +243,38 @@ const techItems = await getActiveTech();
   .tech-row:focus-visible {
     outline: 1px solid color-mix(in srgb, var(--tech-accent) 65%, transparent);
     outline-offset: -1px;
+  }
+
+  .tech-row:focus-visible .tech-icon-cell::after,
+  .tech-row:active .tech-icon-cell::after {
+    opacity: 0.75;
+    animation: tech-ring-pulse 800ms ease-out 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tech-row:hover::before {
+      opacity: 1;
+    }
+
+    .tech-row:hover::after {
+      opacity: 0.5;
+      animation: tech-scan 900ms ease-out 1;
+    }
+
+    .tech-row:hover .tech-name {
+      color: color-mix(in srgb, var(--text) 78%, var(--tech-accent) 22%);
+    }
+
+    .tech-row:hover .tech-arrow {
+      opacity: 0.65;
+      color: var(--tech-accent);
+      animation: tech-arrow-pulse 700ms ease-out 1;
+    }
+
+    .tech-row:hover .tech-icon-cell::after {
+      opacity: 0.75;
+      animation: tech-ring-pulse 800ms ease-out 1;
+    }
   }
 
   .tech-num {
@@ -272,13 +300,6 @@ const techItems = await getActiveTech();
     opacity: 0;
     pointer-events: none;
     z-index: 0;
-  }
-
-  .tech-row:hover .tech-icon-cell::after,
-  .tech-row:focus-visible .tech-icon-cell::after,
-  .tech-row:active .tech-icon-cell::after {
-    opacity: 0.75;
-    animation: tech-ring-pulse 800ms ease-out 1;
   }
 
   .tech-icon-cell img {

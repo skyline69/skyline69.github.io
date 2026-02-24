@@ -28,7 +28,7 @@
 
 @font-face {
   font-family: 'Atkinson Hyperlegible';
-  src: url('/fonts/Atkinson_Hyperlegible/AtkinsonHyperlegible-Regular.ttf') format('truetype');
+  src: url('/fonts/Atkinson_Hyperlegible/AtkinsonHyperlegible-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -36,7 +36,7 @@
 
 @font-face {
   font-family: 'Atkinson Hyperlegible';
-  src: url('/fonts/Atkinson_Hyperlegible/AtkinsonHyperlegible-Bold.ttf') format('truetype');
+  src: url('/fonts/Atkinson_Hyperlegible/AtkinsonHyperlegible-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -46,7 +46,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('/fonts/noto-sans/NotoSans-Regular.ttf') format('truetype');
+  src: url('/fonts/noto-sans/NotoSans-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -54,7 +54,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('/fonts/noto-sans/NotoSans-Medium.ttf') format('truetype');
+  src: url('/fonts/noto-sans/NotoSans-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -62,7 +62,7 @@
 
 @font-face {
   font-family: 'Noto Sans';
-  src: url('/fonts/noto-sans/NotoSans-Bold.ttf') format('truetype');
+  src: url('/fonts/noto-sans/NotoSans-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -298,6 +298,26 @@ img {
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* ── Skip Link ── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--gap);
+  z-index: 999;
+  padding: 0.5rem 1rem;
+  background: var(--bg-alt);
+  color: var(--highlight);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid color-mix(in srgb, var(--highlight) 50%, transparent);
+}
+
+.skip-link:focus {
+  top: 0.5rem;
 }
 
 /* ── Reduced Motion ── */

@@ -133,6 +133,16 @@ const highlights = await getActiveHighlights();
     padding-top: 0;
   }
 
+  @media (hover: hover) and (pointer: fine) {
+    .highlight-item:hover .highlight-index {
+      opacity: 0.25;
+    }
+
+    .highlight-item:hover .highlight-body h3 {
+      color: var(--text);
+    }
+  }
+
   .highlight-index {
     font-size: 1.75rem;
     font-weight: 700;

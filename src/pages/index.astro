@@ -12,7 +12,7 @@ import { Icon } from 'astro-icon/components';
 
 <Layout>
   <Nav />
-  <main>
+    <main id="main">
     <Hero />
     <div class="block-grid">
       <!-- Row 1: About | Highlights -->
@@ -79,6 +79,11 @@ import { Icon } from 'astro-icon/components';
     text-decoration: underline;
   }
 
+  .footer-handle a:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
+
   .footer-copy {
     color: var(--dim);
   }
@@ -94,6 +99,11 @@ import { Icon } from 'astro-icon/components';
 
   .footer-built a:hover {
     text-decoration: underline;
+  }
+
+  .footer-built a:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
   }
 
   /* ── Scroll-to-top button ── */
@@ -127,6 +137,12 @@ import { Icon } from 'astro-icon/components';
   .scroll-top:hover {
     color: var(--highlight);
     border-color: color-mix(in srgb, var(--highlight) 72%, transparent);
+  }
+
+  .scroll-top:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+    color: var(--highlight);
   }
 
   .scroll-top :global(svg) {

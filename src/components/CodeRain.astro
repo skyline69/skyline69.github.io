@@ -214,7 +214,9 @@
 
     /** Animation loop */
     function loop(): void {
-      draw();
+      if (!document.hidden) {
+        draw();
+      }
       animationId = requestAnimationFrame(loop);
     }
 
@@ -230,16 +232,18 @@
 
     // Handle resize with debounce
     let resizeTimer: number = 0;
-    window.addEventListener('resize', (): void => {
+    const onResize = (): void => {
       clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout((): void => {
         resize();
       }, 150);
-    });
+    };
+    window.addEventListener('resize', onResize);
 
     // Cleanup on page navigation (view transitions)
     document.addEventListener('astro:before-swap', (): void => {
       cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', onResize);
     }, { once: true });
   }
 

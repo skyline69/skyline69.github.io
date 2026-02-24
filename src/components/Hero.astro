@@ -219,6 +219,12 @@ import { Icon } from 'astro-icon/components';
     text-underline-offset: 0.2em;
   }
 
+  .hero-game-button:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+    color: var(--highlight);
+  }
+
   .hero-game-button-icon {
     display: inline-flex;
     color: var(--highlight);
@@ -340,8 +346,14 @@ import { Icon } from 'astro-icon/components';
     border-color: color-mix(in srgb, var(--highlight) 72%, transparent);
   }
 
-  .hero-game-modal :global(*:focus),
-  .hero-game-modal :global(*:focus-visible) {
+  .hero-game-modal-close:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+    color: var(--highlight);
+  }
+
+  .hero-game-modal :global(*:not(button):focus),
+  .hero-game-modal :global(*:not(button):focus-visible) {
     outline: none !important;
     box-shadow: none !important;
   }
@@ -484,6 +496,15 @@ import { Icon } from 'astro-icon/components';
     opacity: 1;
   }
 
+  .scroll-down:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
+
+  .scroll-down:focus-visible .chevron {
+    opacity: 1;
+  }
+
   @keyframes bounce-down {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(6px); }
@@ -533,6 +554,11 @@ import { Icon } from 'astro-icon/components';
   }
 
   @media (max-width: 768px) {
+    .hero {
+      min-height: auto;
+      padding: 6rem 0 4rem;
+    }
+
     .hero-layout {
       grid-template-columns: 1fr;
       align-items: start;
