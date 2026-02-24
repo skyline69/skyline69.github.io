@@ -1,0 +1,53 @@
+---
+/**
+ * TetrisGame.astro
+ *
+ * Mounts the WASM-powered Tetris app into a dedicated full-width section.
+ */
+---
+
+<section class="section full-width" id="tetris">
+  <div class="container">
+    <div id="tetris-app" aria-label="Tetris game area"></div>
+  </div>
+</section>
+
+<style>
+  #tetris-app {
+    min-height: 28rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+    background: color-mix(in srgb, var(--bg-alt) 35%, transparent);
+  }
+
+  @media (max-width: 768px) {
+    #tetris-app {
+      min-height: 22rem;
+    }
+  }
+</style>
+
+<script>
+  import initTetrisModule, { destroy, start } from '../lib/wasm/tetris/tetris_wasm.js';
+
+  async function initTetris(): Promise<void> {
+    const host: HTMLElement | null = document.getElementById('tetris-app');
+    if (!host) return;
+    if (host.dataset.tetrisInitialized === 'true') return;
+
+    const reducedMotion: boolean = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
+    host.dataset.tetrisInitialized = 'true';
+
+    await initTetrisModule();
+    destroy();
+    start('tetris-app');
+  }
+
+  function onAfterSwap(): void {
+    void initTetris();
+  }
+
+  void initTetris();
+  document.addEventListener('astro:after-swap', onAfterSwap);
+</script>

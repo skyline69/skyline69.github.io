@@ -51,23 +51,52 @@ const block = lines.join('\n');
   <div class="grain-overlay" aria-hidden="true"></div>
 
   <!-- Foreground content -->
-  <div class="container hero-content">
-    <p class="greeting">Hello, I'm</p>
-    <h1>Efe</h1>
-    <div class="strapline">
-      <TypingText
-        texts={[
-          'Developer.',
-          'Tinkerer.',
-          'Music lover.',
-          'Lifelong learner.',
-        ]}
-        loop={true}
-        speed={45}
-        pauseMs={1200}
-      />
+  <div class="container hero-content" data-hero-game>
+    <div class="hero-layout">
+      <div class="hero-copy">
+        <p class="greeting">Hello, I'm</p>
+        <h1>Efe</h1>
+        <div class="strapline">
+          <TypingText
+            texts={[
+              'Developer.',
+              'Tinkerer.',
+              'Music lover.',
+              'Lifelong learner.',
+            ]}
+            loop={true}
+            speed={45}
+            pauseMs={1200}
+          />
+        </div>
+      </div>
+      <aside class="hero-game-card" aria-labelledby="hero-game-title">
+        <h2 id="hero-game-title">Want to play a game?</h2>
+        <p class="hero-game-text">
+          Launch a Rust + WebAssembly Tetris build directly in the page.
+        </p>
+        <button type="button" class="hero-game-button" data-open-game>
+          <span class="hero-game-button-icon" aria-hidden="true">
+            <Icon name="lucide:gamepad-2" size={18} />
+          </span>
+          Open Tetris
+        </button>
+      </aside>
     </div>
   </div>
+
+  <dialog class="hero-game-modal" id="hero-game-modal" aria-labelledby="hero-game-modal-title">
+    <div class="hero-game-modal-shell">
+      <header class="hero-game-modal-header">
+        <h3 id="hero-game-modal-title">Tetris</h3>
+        <button type="button" class="hero-game-modal-close" data-close-game aria-label="Close game window">
+          <Icon name="lucide:x" size={18} />
+        </button>
+      </header>
+      <p class="hero-game-modal-help">Arrow keys move and rotate. Space drops.</p>
+      <div id="hero-tetris-app" class="hero-game-host" aria-label="Tetris game area"></div>
+    </div>
+  </dialog>
 
   <!-- Scroll-down indicator -->
   <a href="#about" class="scroll-down" aria-label="Scroll down to content">
@@ -171,6 +200,18 @@ const block = lines.join('\n');
   .hero-content {
     position: relative;
     z-index: 2;
+    width: 100%;
+  }
+
+  .hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+    align-items: center;
+    gap: 2.25rem;
+  }
+
+  .hero-copy {
+    max-width: 34rem;
   }
 
   .greeting {
@@ -193,6 +234,276 @@ const block = lines.join('\n');
     font-size: 1.35rem;
     color: var(--accent);
     min-height: 2rem;
+  }
+
+  .hero-game-card {
+    border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+    background: color-mix(in srgb, var(--bg-alt) 44%, transparent);
+    padding: 1.35rem;
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .hero-game-card h2 {
+    font-size: 1.15rem;
+    line-height: 1.3;
+    color: var(--text);
+  }
+
+  .hero-game-text {
+    color: color-mix(in srgb, var(--text) 84%, transparent);
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .hero-game-button {
+    border: 1px solid color-mix(in srgb, var(--highlight) 75%, transparent);
+    background: transparent;
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.65rem 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .hero-game-button:hover {
+    color: var(--highlight);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .hero-game-button-icon {
+    display: inline-flex;
+    color: var(--highlight);
+  }
+
+  .hero-game-modal {
+    --tetris-ratio: 1.194444; /* 860 / 720 */
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(
+      52rem,
+      calc((100dvh - 12.5rem) * var(--tetris-ratio)),
+      calc(100vw - 1.5rem)
+    );
+    max-height: calc(100vh - 2.5rem);
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    color: var(--text);
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(0.65rem) scale(0.985);
+  }
+
+  .hero-game-modal[open] {
+    animation: hero-game-modal-in 220ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+  }
+
+  .hero-game-modal.is-closing {
+    animation: hero-game-modal-out 180ms ease-in forwards;
+  }
+
+  .hero-game-modal::backdrop {
+    background: color-mix(in srgb, var(--bg-alt) 82%, transparent);
+    opacity: 0;
+  }
+
+  .hero-game-modal[open]::backdrop {
+    animation: hero-game-backdrop-in 220ms ease-out forwards;
+  }
+
+  .hero-game-modal.is-closing::backdrop {
+    animation: hero-game-backdrop-out 180ms ease-in forwards;
+  }
+
+  @keyframes hero-game-modal-in {
+    0% {
+      opacity: 0;
+      transform: translateY(0.65rem) scale(0.985);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes hero-game-backdrop-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hero-game-modal-out {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(0.45rem) scale(0.992);
+    }
+  }
+
+  @keyframes hero-game-backdrop-out {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .hero-game-modal-shell {
+    padding: 1rem;
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .hero-game-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .hero-game-modal-header h3 {
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .hero-game-modal-close {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+    background: transparent;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .hero-game-modal-close:hover {
+    color: var(--highlight);
+    border-color: color-mix(in srgb, var(--highlight) 72%, transparent);
+  }
+
+  .hero-game-modal :global(*:focus),
+  .hero-game-modal :global(*:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .hero-game-modal :global(*::selection) {
+    background: transparent !important;
+    color: inherit !important;
+  }
+
+  .hero-game-modal-help {
+    font-size: 0.82rem;
+    color: var(--dim);
+  }
+
+  .hero-game-host {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 860 / 720;
+    max-height: calc(100dvh - 12rem);
+    background: color-mix(in srgb, var(--bg-alt) 36%, transparent);
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .hero-game-host :global(.hero-game-loader) {
+    position: absolute;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    place-items: center;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--accent) 12%, transparent) 0 1px,
+        transparent 1px 16px
+      ),
+      linear-gradient(
+        110deg,
+        color-mix(in srgb, var(--bg-alt) 90%, black 10%) 0%,
+        color-mix(in srgb, var(--highlight) 24%, var(--bg-alt) 76%) 46%,
+        color-mix(in srgb, var(--bg-alt) 90%, black 10%) 100%
+      );
+    background-size: 100% 100%, 210% 100%;
+    animation: hero-game-loader-sweep 1.1s linear infinite;
+  }
+
+  .hero-game-host[data-loading='true'] :global(.hero-game-loader) {
+    display: grid;
+  }
+
+  .hero-game-host[data-loading='true'] :global(.twm-shell),
+  .hero-game-host[data-loading='true'] :global(.twm-canvas) {
+    visibility: hidden;
+  }
+
+  @keyframes hero-game-loader-sweep {
+    0% {
+      background-position: 0 0, 100% 0;
+    }
+    100% {
+      background-position: 0 0, -100% 0;
+    }
+  }
+
+  .hero-game-host :global(.twm-shell) {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(
+        circle at 16% 18%,
+        color-mix(in srgb, var(--highlight) 16%, transparent) 0%,
+        transparent 44%
+      ),
+      radial-gradient(
+        circle at 84% 8%,
+        color-mix(in srgb, var(--accent) 14%, transparent) 0%,
+        transparent 42%
+      ),
+      linear-gradient(
+        155deg,
+        color-mix(in srgb, var(--bg-alt) 88%, black 12%),
+        color-mix(in srgb, var(--bg) 90%, black 10%)
+      ) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: var(--text) !important;
+  }
+
+  .hero-game-host :global(.twm-canvas) {
+    display: block;
+    margin: 0 auto;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 100% !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: color-mix(in srgb, var(--bg-alt) 72%, black 28%) !important;
   }
 
   /* ── Scroll-down indicator ── */
@@ -241,9 +552,56 @@ const block = lines.join('\n');
     .chevron {
       animation: none;
     }
+
+    .hero-game-modal {
+      opacity: 1;
+      transform: none;
+    }
+
+    .hero-game-modal[open] {
+      animation: none;
+    }
+
+    .hero-game-modal.is-closing {
+      animation: none;
+    }
+
+    .hero-game-modal::backdrop {
+      opacity: 1;
+    }
+
+    .hero-game-modal[open]::backdrop {
+      animation: none;
+    }
+
+    .hero-game-modal.is-closing::backdrop {
+      animation: none;
+    }
+
+    .hero-game-host :global(.hero-game-loader) {
+      animation: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          color-mix(in srgb, var(--accent) 12%, transparent) 0 1px,
+          transparent 1px 18px
+        ),
+        color-mix(in srgb, var(--bg-alt) 92%, black 8%);
+    }
+
   }
 
   @media (max-width: 768px) {
+    .hero-layout {
+      grid-template-columns: 1fr;
+      align-items: start;
+      gap: 0.75rem;
+    }
+
+    .hero-game-card {
+      display: none;
+    }
+
     .strapline {
       font-size: 1rem;
     }
@@ -255,5 +613,191 @@ const block = lines.join('\n');
     .scroll-down {
       bottom: 1.5rem;
     }
+
+    .hero-game-host {
+      max-height: calc(100dvh - 11rem);
+    }
   }
 </style>
+
+<script>
+  interface TetrisModule {
+    default: () => Promise<unknown>;
+    destroy: () => void;
+    start: (mountId: string) => void;
+  }
+
+  let tetrisModulePromise: Promise<TetrisModule> | null = null;
+  let tetrisModule: TetrisModule | null = null;
+  const MIN_LOADER_VISIBLE_MS: number = 900;
+
+  function waitNextFrame(): Promise<void> {
+    return new Promise((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+  }
+
+  function waitMs(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      window.setTimeout(() => resolve(), ms);
+    });
+  }
+
+  function ensureLoader(host: HTMLElement): void {
+    const existingLoader: HTMLDivElement | null = host.querySelector<HTMLDivElement>('.hero-game-loader');
+    if (existingLoader) return;
+
+    const loader: HTMLDivElement = document.createElement('div');
+    loader.className = 'hero-game-loader';
+    loader.setAttribute('aria-hidden', 'true');
+    host.appendChild(loader);
+  }
+
+  function setHostLoading(host: HTMLElement, isLoading: boolean): void {
+    if (isLoading) {
+      ensureLoader(host);
+      host.dataset.loading = 'true';
+      return;
+    }
+    host.dataset.loading = 'false';
+  }
+
+  async function getTetrisModule(): Promise<TetrisModule> {
+    if (tetrisModule) return tetrisModule;
+    if (!tetrisModulePromise) {
+      tetrisModulePromise = import('../lib/wasm/tetris/tetris_wasm.js') as Promise<TetrisModule>;
+    }
+    tetrisModule = await tetrisModulePromise;
+    return tetrisModule;
+  }
+
+  async function mountTetris(): Promise<void> {
+    const host: HTMLElement | null = document.getElementById('hero-tetris-app');
+    const modal: HTMLDialogElement | null = document.querySelector<HTMLDialogElement>('#hero-game-modal');
+    if (!host) return;
+    if (!modal || !modal.open) return;
+    if (host.dataset.tetrisMounted === 'true') return;
+    const loadingStartedAt: number = performance.now();
+    setHostLoading(host, true);
+    await waitNextFrame();
+
+    const module: TetrisModule = await getTetrisModule();
+    await module.default();
+    const loadingDuration: number = performance.now() - loadingStartedAt;
+    if (loadingDuration < MIN_LOADER_VISIBLE_MS) {
+      await waitMs(MIN_LOADER_VISIBLE_MS - loadingDuration);
+    }
+    if (!modal.open) {
+      setHostLoading(host, false);
+      return;
+    }
+    host.innerHTML = '';
+    module.destroy();
+    module.start('hero-tetris-app');
+    host.dataset.tetrisMounted = 'true';
+    await waitNextFrame();
+    setHostLoading(host, false);
+  }
+
+  function isTetrisMounted(): boolean {
+    const host: HTMLElement | null = document.getElementById('hero-tetris-app');
+    if (!host) return false;
+    return host.dataset.tetrisMounted === 'true';
+  }
+
+  function teardownTetris(): void {
+    const host: HTMLElement | null = document.getElementById('hero-tetris-app');
+    if (!host) return;
+    if (host.dataset.tetrisMounted === 'true' && tetrisModule) tetrisModule.destroy();
+    host.innerHTML = '';
+    delete host.dataset.tetrisMounted;
+    setHostLoading(host, false);
+  }
+
+  function closeIfBackdropClick(event: MouseEvent, modal: HTMLDialogElement): void {
+    const rect: DOMRect = modal.getBoundingClientRect();
+    const insideDialog: boolean =
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom;
+    if (!insideDialog) closeModalWithAnimation(modal);
+  }
+
+  function closeModalWithAnimation(modal: HTMLDialogElement): void {
+    if (!modal.open) return;
+    if (modal.dataset.closing === 'true') return;
+
+    const reducedMotion: boolean = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      modal.close();
+      return;
+    }
+
+    modal.dataset.closing = 'true';
+    modal.classList.add('is-closing');
+
+    const onAnimationEnd = (event: AnimationEvent): void => {
+      if (event.animationName !== 'hero-game-modal-out') return;
+      if (modal.open) modal.close();
+    };
+
+    modal.addEventListener('animationend', onAnimationEnd, { once: true });
+
+    window.setTimeout(() => {
+      if (modal.dataset.closing !== 'true') return;
+      if (modal.open) modal.close();
+    }, 220);
+  }
+
+  function initHeroGameModal(): void {
+    const heroRoot: HTMLElement | null = document.querySelector<HTMLElement>('[data-hero-game]');
+    if (!heroRoot) return;
+    if (heroRoot.dataset.gameModalInit === 'true') return;
+
+    const modal: HTMLDialogElement | null = document.querySelector<HTMLDialogElement>('#hero-game-modal');
+    const openButton: HTMLButtonElement | null = heroRoot.querySelector<HTMLButtonElement>('[data-open-game]');
+    const closeButton: HTMLButtonElement | null = modal?.querySelector<HTMLButtonElement>('[data-close-game]') ?? null;
+    if (!modal || !openButton || !closeButton) return;
+
+    const reducedMotion: boolean = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      heroRoot.dataset.reducedMotion = 'true';
+    }
+
+    heroRoot.dataset.gameModalInit = 'true';
+
+    openButton.addEventListener('click', () => {
+      const host: HTMLElement | null = document.getElementById('hero-tetris-app');
+      if (host) setHostLoading(host, true);
+      if (!modal.open) modal.showModal();
+      if (isTetrisMounted()) {
+        if (host) setHostLoading(host, false);
+        return;
+      }
+      void mountTetris();
+    });
+
+    closeButton.addEventListener('click', () => {
+      closeModalWithAnimation(modal);
+    });
+
+    modal.addEventListener('click', (event: MouseEvent) => {
+      closeIfBackdropClick(event, modal);
+    });
+
+    modal.addEventListener('cancel', (event: Event) => {
+      event.preventDefault();
+      closeModalWithAnimation(modal);
+    });
+
+    modal.addEventListener('close', () => {
+      modal.classList.remove('is-closing');
+      delete modal.dataset.closing;
+      teardownTetris();
+    });
+  }
+
+  initHeroGameModal();
+  document.addEventListener('astro:after-swap', initHeroGameModal);
+</script>

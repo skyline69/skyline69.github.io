@@ -1,6 +1,6 @@
 ---
 name: "PostgreSQL"
-icon: "/assets/icons/postgresql.svg"
+icon: "./postgresql.svg"
 url: "https://www.postgresql.org/"
 accent: "#336791"
 order: 9

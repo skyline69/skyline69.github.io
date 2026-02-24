@@ -4,11 +4,11 @@ import { z } from 'astro/zod';
 
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     title: z.string(),
     description: z.string(),
     repoUrl: z.string(),
-    image: z.string(),
+    image: image(),
     tags: z.array(z.string()).default([]),
     order: z.number(),
     active: z.boolean().default(true),
@@ -17,9 +17,9 @@ const projects = defineCollection({
 
 const tech = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/tech' }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     name: z.string(),
-    icon: z.string(),
+    icon: image(),
     url: z.string(),
     accent: z.string().optional(),
     order: z.number(),

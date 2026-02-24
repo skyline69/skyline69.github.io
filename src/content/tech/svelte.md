@@ -1,6 +1,6 @@
 ---
 name: "Svelte"
-icon: "/assets/icons/svelte.svg"
+icon: "./svelte.svg"
 url: "https://svelte.dev/"
 accent: "#FF3E00"
 order: 1

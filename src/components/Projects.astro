@@ -1,6 +1,7 @@
 ---
 import SectionTitle from './SectionTitle.astro';
 import { Icon } from 'astro-icon/components';
+import { Image } from 'astro:assets';
 import { getActiveProjects } from '../lib/content';
 
 const projects = await getActiveProjects();
@@ -18,9 +19,10 @@ const projects = await getActiveProjects();
           class="project-card"
         >
           <div class="project-image">
-            <img
+            <Image
               src={project.data.image}
               alt={`Screenshot of ${project.data.title}`}
+              width={720}
               loading="lazy"
             />
           </div>

@@ -13,6 +13,16 @@ const links = [
       {links.map((link) => (
         <li><a href={link.href}>{link.label}</a></li>
       ))}
+      <li>
+        <a
+          href="https://github.com/skyline69"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="nav-link-github"
+        >
+          GitHub
+        </a>
+      </li>
     </ul>
   </div>
 </nav>
@@ -275,6 +285,19 @@ const links = [
 
   .nav-links a.nav-active {
     color: var(--highlight);
+  }
+
+  .nav-links a.nav-link-github {
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+    padding: 0.2rem 0.45rem;
+  }
+
+  .nav-links a.nav-link-github:hover {
+    color: var(--highlight);
+    border-color: color-mix(in srgb, var(--highlight) 72%, transparent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 
   @media (max-width: 768px) {

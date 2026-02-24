@@ -1,6 +1,6 @@
 ---
 name: "Python"
-icon: "/assets/icons/python.svg"
+icon: "./python.svg"
 url: "https://www.python.org/"
 accent: "#3776AB"
 order: 6
