@@ -71,18 +71,21 @@
     const accentColor: string = styles.getPropertyValue('--accent').trim() || '#E0CCBE';
     const dimColor: string = styles.getPropertyValue('--dim').trim() || '#8A8477';
 
-    const FONT_SIZE: number = 14;
-    const COL_WIDTH: number = 22;
+    const FONT_SIZE: number = 16;
+    const COL_WIDTH: number = 28;
     const reducedMotion: boolean = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let columns: Column[] = [];
     let animationId: number = 0;
     let dpr: number = 1;
 
-    // ── Scroll-reactive speed ──
-    let scrollVelocity: number = 0;
-    let lastScrollY: number = window.scrollY;
-    let scrollMultiplier: number = 1;
+    // ── Cached viewport dimensions (updated on resize only) ──
+    let cachedW: number = window.innerWidth;
+    let cachedH: number = window.innerHeight;
+
+    // ── Visibility tracking ──
+    let lastFrameTime: number = 0;
+    const FRAME_INTERVAL: number = 1000 / 30; // cap at ~30fps
 
     /** Pick a random token from the pool */
     function randomToken(): string {
@@ -111,18 +114,40 @@
     const accentRgb: [number, number, number] = hexToRgb(accentColor);
     const dimRgb: [number, number, number] = hexToRgb(dimColor);
 
+    // ── Pre-build rgba color cache to avoid per-character string allocation ──
+    const COLOR_CACHE_STEPS: number = 64;
+    type RgbaCache = string[];
+
+    function buildRgbaCache(rgb: [number, number, number]): RgbaCache {
+      const cache: RgbaCache = [];
+      for (let i: number = 0; i <= COLOR_CACHE_STEPS; i++) {
+        const alpha: number = i / COLOR_CACHE_STEPS;
+        cache.push('rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha.toFixed(3) + ')');
+      }
+      return cache;
+    }
+
+    function getCachedColor(cache: RgbaCache, alpha: number): string {
+      const idx: number = Math.round(Math.min(Math.max(alpha, 0), 1) * COLOR_CACHE_STEPS);
+      return cache[idx];
+    }
+
+    const highlightCache: RgbaCache = buildRgbaCache(highlightRgb);
+    const accentCache: RgbaCache = buildRgbaCache(accentRgb);
+    const dimCache: RgbaCache = buildRgbaCache(dimRgb);
+
     /** Resize canvas to fill viewport and rebuild columns */
     function resize(): void {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w: number = window.innerWidth;
-      const h: number = window.innerHeight;
-      canvas!.width = w * dpr;
-      canvas!.height = h * dpr;
-      canvas!.style.width = w + 'px';
-      canvas!.style.height = h + 'px';
+      cachedW = window.innerWidth;
+      cachedH = window.innerHeight;
+      canvas!.width = cachedW * dpr;
+      canvas!.height = cachedH * dpr;
+      canvas!.style.width = cachedW + 'px';
+      canvas!.style.height = cachedH + 'px';
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const colCount: number = Math.ceil(w / COL_WIDTH) + 1;
+      const colCount: number = Math.ceil(cachedW / COL_WIDTH) + 1;
       columns = [];
       for (let i: number = 0; i < colCount; i++) {
         columns.push(createColumn(i * COL_WIDTH, true));
@@ -131,36 +156,22 @@
 
     /** Create a single column with randomised properties */
     function createColumn(x: number, randomStart: boolean): Column {
-      const h: number = window.innerHeight;
       const fadeLength: number = 8 + Math.floor(Math.random() * 16);
       return {
         x,
-        y: randomStart ? -(Math.random() * h * 1.5) : -(Math.random() * FONT_SIZE * 4),
+        y: randomStart ? -(Math.random() * cachedH * 1.5) : -(Math.random() * FONT_SIZE * 4),
         speed: 0.3 + Math.random() * 0.9,
         chars: buildCharSequence(fadeLength + 4),
         charIndex: 0,
-        opacity: 0.04 + Math.random() * 0.09,
+        opacity: 0.06 + Math.random() * 0.12,
         fadeLength,
       };
     }
 
     /** Draw a single frame of the animation */
     function draw(): void {
-      const w: number = window.innerWidth;
-      const h: number = window.innerHeight;
-
-      // ── Update scroll velocity ──
-      const currentScrollY: number = window.scrollY;
-      scrollVelocity = currentScrollY - lastScrollY;
-      lastScrollY = currentScrollY;
-      // Smoothly compute multiplier: 1.0 (idle) up to 4.0 (fast scroll)
-      const targetMultiplier: number = 1.0 + Math.min(Math.abs(scrollVelocity) / 30, 3.0);
-      // Ease toward target — ramp up fast, decay slowly
-      const ease: number = targetMultiplier > scrollMultiplier ? 0.3 : 0.05;
-      scrollMultiplier += (targetMultiplier - scrollMultiplier) * ease;
-
-      ctx!.clearRect(0, 0, w, h);
-      ctx!.font = FONT_SIZE + 'px "Fira Code", monospace';
+      ctx!.clearRect(0, 0, cachedW, cachedH);
+      ctx!.font = FONT_SIZE + 'px \"Fira Code\", monospace';
       ctx!.textBaseline = 'top';
 
       for (let c: number = 0; c < columns.length; c++) {
@@ -169,36 +180,36 @@
 
         for (let i: number = 0; i < totalChars; i++) {
           const charY: number = col.y + i * (FONT_SIZE + 4);
-          if (charY < -FONT_SIZE || charY > h) continue;
+          if (charY < -FONT_SIZE || charY > cachedH) continue;
 
           // Head character (brightest) — use highlight colour
           const isHead: boolean = i === totalChars - 1;
           // Tail fade — characters near the top of the column fade out
           const tailFade: number = Math.min(i / col.fadeLength, 1);
           const charOpacity: number = isHead
-            ? col.opacity * 2.5
+            ? col.opacity * 3
             : col.opacity * tailFade;
 
           if (charOpacity < 0.005) continue;
 
-          let rgb: [number, number, number];
+          let cache: RgbaCache;
           if (isHead) {
-            rgb = highlightRgb;
+            cache = highlightCache;
           } else if (i > totalChars - 4) {
-            rgb = accentRgb;
+            cache = accentCache;
           } else {
-            rgb = dimRgb;
+            cache = dimCache;
           }
 
-          ctx!.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + charOpacity + ')';
+          ctx!.fillStyle = getCachedColor(cache, charOpacity);
           const charIdx: number = (col.charIndex + i) % col.chars.length;
           ctx!.fillText(col.chars[charIdx], col.x, charY);
         }
 
-        // Advance column position (accelerates with scroll)
-        col.y += col.speed * scrollMultiplier;
-        // Cycle characters faster during scroll
-        if (Math.random() < 0.02 * scrollMultiplier) {
+        // Advance column position
+        col.y += col.speed;
+        // Occasionally cycle characters
+        if (Math.random() < 0.02) {
           col.charIndex = (col.charIndex + 1) % col.chars.length;
           // Occasionally swap a random character
           const swapIdx: number = Math.floor(Math.random() * col.chars.length);
@@ -206,18 +217,41 @@
         }
 
         // Reset column when it scrolls past the bottom
-        if (col.y > h + FONT_SIZE) {
+        if (col.y > cachedH + FONT_SIZE) {
           columns[c] = createColumn(col.x, false);
         }
       }
     }
 
-    /** Animation loop */
-    function loop(): void {
-      if (!document.hidden) {
-        draw();
+    /** Animation loop — throttled to ~30fps */
+    function loop(timestamp: number): void {
+      if (document.hidden) {
+        // Fully stop the rAF loop — resumed by visibilitychange
+        animationId = 0;
+        return;
       }
+
       animationId = requestAnimationFrame(loop);
+
+      const delta: number = timestamp - lastFrameTime;
+      if (delta < FRAME_INTERVAL) return;
+      lastFrameTime = timestamp - (delta % FRAME_INTERVAL);
+
+      draw();
+    }
+
+    /** Start the animation loop if not already running */
+    function startLoop(): void {
+      if (animationId !== 0) return;
+      animationId = requestAnimationFrame(loop);
+    }
+
+    /** Stop the animation loop */
+    function stopLoop(): void {
+      if (animationId !== 0) {
+        cancelAnimationFrame(animationId);
+        animationId = 0;
+      }
     }
 
     // ── Setup ──
@@ -227,8 +261,18 @@
       // Static single frame for reduced-motion users
       draw();
     } else {
-      loop();
+      startLoop();
     }
+
+    // Pause when tab is hidden, resume when visible
+    const onVisibilityChange = (): void => {
+      if (document.hidden) {
+        stopLoop();
+      } else if (!reducedMotion) {
+        startLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     // Handle resize with debounce
     let resizeTimer: number = 0;
@@ -242,8 +286,9 @@
 
     // Cleanup on page navigation (view transitions)
     document.addEventListener('astro:before-swap', (): void => {
-      cancelAnimationFrame(animationId);
+      stopLoop();
       window.removeEventListener('resize', onResize);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     }, { once: true });
   }
 

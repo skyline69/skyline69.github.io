@@ -70,6 +70,15 @@ import { Icon } from 'astro-icon/components';
 
     if (prefersReducedMotion) return;
 
+    // ── Pre-parse palette hex colors to RGB tuples ──
+    type RgbTuple = [number, number, number];
+
+    const paletteRgb: RgbTuple[] = palette.map((hex: string): RgbTuple => [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ]);
+
     // Each divider gets an offset based on its position on the page
     // so they don't all show the same colors at once
     interface DividerData {
@@ -99,45 +108,33 @@ import { Icon } from 'astro-icon/components';
       // Dividing by a larger number = slower shift.
       colorOffset += scrollDelta / 200;
 
+      const paletteLen: number = paletteRgb.length;
+
       dividerData.forEach((data: DividerData, dividerIndex: number): void => {
         data.stars.forEach((star: HTMLElement, starIndex: number): void => {
           // Each star gets its own phase: star index + divider offset + scroll offset
           const phase: number = colorOffset + starIndex * 0.7 + dividerIndex * 1.3;
 
           // Map phase to a palette index (wrap around)
-          const paletteLen: number = palette.length;
           // Normalize to positive range
           const normalizedPhase: number =
             ((phase % paletteLen) + paletteLen) % paletteLen;
           const lowerIndex: number = Math.floor(normalizedPhase);
           const fraction: number = normalizedPhase - lowerIndex;
 
-          // Interpolate between two adjacent palette colors
-          const colorA: string = palette[lowerIndex % paletteLen];
-          const colorB: string = palette[(lowerIndex + 1) % paletteLen];
+          // Interpolate between two adjacent palette colors (pre-parsed)
+          const rgbA: RgbTuple = paletteRgb[lowerIndex % paletteLen];
+          const rgbB: RgbTuple = paletteRgb[(lowerIndex + 1) % paletteLen];
 
-          const blended: string = blendColors(colorA, colorB, fraction);
-          star.style.color = blended;
+          const r: number = Math.round(rgbA[0] + (rgbB[0] - rgbA[0]) * fraction);
+          const g: number = Math.round(rgbA[1] + (rgbB[1] - rgbA[1]) * fraction);
+          const b: number = Math.round(rgbA[2] + (rgbB[2] - rgbA[2]) * fraction);
+
+          star.style.color = 'rgb(' + r + ',' + g + ',' + b + ')';
         });
       });
 
       ticking = false;
-    }
-
-    function blendColors(hexA: string, hexB: string, t: number): string {
-      const rA: number = parseInt(hexA.slice(1, 3), 16);
-      const gA: number = parseInt(hexA.slice(3, 5), 16);
-      const bA: number = parseInt(hexA.slice(5, 7), 16);
-
-      const rB: number = parseInt(hexB.slice(1, 3), 16);
-      const gB: number = parseInt(hexB.slice(3, 5), 16);
-      const bB: number = parseInt(hexB.slice(5, 7), 16);
-
-      const r: number = Math.round(rA + (rB - rA) * t);
-      const g: number = Math.round(gA + (gB - gA) * t);
-      const b: number = Math.round(bA + (bB - bA) * t);
-
-      return `rgb(${r}, ${g}, ${b})`;
     }
 
     function onScroll(): void {
@@ -154,6 +151,11 @@ import { Icon } from 'astro-icon/components';
     // Initial paint
     lastScroll = window.scrollY;
     updateColors();
+
+    // Cleanup on page navigation (view transitions)
+    document.addEventListener('astro:before-swap', (): void => {
+      window.removeEventListener('scroll', onScroll);
+    }, { once: true });
   }
 
   initDividers();

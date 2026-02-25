@@ -49,7 +49,7 @@ const age: number = getAge(birthDate);
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    backdrop-filter: blur(4px);
+    contain: content;
     background:
       linear-gradient(
         140deg,
@@ -111,7 +111,8 @@ const age: number = getAge(birthDate);
         transparent 78%
       );
     background-size: 135% 135%, 145% 145%;
-    background-position: 18% 24%, 82% 76%;
+    background-position: 20% 26%, 80% 74%;
+    will-change: transform;
     animation: about-background-drift 22s ease-in-out infinite;
   }
 
@@ -123,10 +124,10 @@ const age: number = getAge(birthDate);
   @keyframes about-background-drift {
     0%,
     100% {
-      background-position: 18% 24%, 82% 76%;
+      transform: translate(-2.7%, -2.7%);
     }
     50% {
-      background-position: 22% 28%, 78% 72%;
+      transform: translate(2.7%, 2.7%);
     }
   }
 
@@ -221,7 +222,6 @@ const age: number = getAge(birthDate);
 
     #about::after {
       opacity: 0.3;
-      background-size: 145% 145%, 160% 160%;
       animation-duration: 24s;
     }
 
@@ -235,6 +235,10 @@ const age: number = getAge(birthDate);
     #about::after {
       animation: none;
     }
+  }
+
+  #about[data-offscreen]::after {
+    animation-play-state: paused;
   }
 </style>
 

@@ -1,10 +1,10 @@
 ---
 /**
  * Three.js ASCII-rendered torus knot background for the hero section.
- * Lazy-loads Three.js + AsciiEffect, renders a slowly rotating torus knot
- * through an ASCII post-processing pass. Mouse position applies subtle
- * parallax to the camera. Falls back to a static character grid on mobile,
- * reduced-motion, or missing WebGL.
+ * Lazy-loads Three.js, renders a slowly rotating torus knot, then
+ * converts the WebGL output to ASCII characters drawn on a 2D canvas.
+ * Mouse position applies subtle parallax to the camera. Falls back to
+ * a static character grid on mobile, reduced-motion, or missing WebGL.
  */
 
 const glyphs: string = '01{}[]<>/\\|;:=+-._#@&*~$%?!^abcdef0123456789ABCDEF';
@@ -44,27 +44,33 @@ const fallbackBlock: string = lines.join('\n');
   /* ── Static fallback (visible until Three.js replaces it) ── */
 
   .ascii-fallback {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: hidden;
     font-family: var(--font);
     font-size: 0.75rem;
     line-height: 2.4;
     letter-spacing: 0.3em;
     color: var(--accent);
-    opacity: 0.035;
+    opacity: 0.04;
     margin: 0;
     padding: 0;
     white-space: pre;
     user-select: none;
   }
 
-  /* ── AsciiEffect output styling ── */
+  /* ── Canvas ASCII output styling ── */
 
-  .ascii-scene :global(table) {
-    font-family: var(--font);
-    opacity: 0.14;
-    background: transparent;
-    margin: 0;
-    padding: 0;
-    border-collapse: collapse;
+  .ascii-scene :global(canvas.ascii-output) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.22;
     pointer-events: none;
     user-select: none;
   }
@@ -77,35 +83,45 @@ const fallbackBlock: string = lines.join('\n');
 </style>
 
 <script>
-  // ── Three.js ASCII Scene ──
-
-  /** Marker type for the AsciiEffect's generated DOM element */
-  interface AsciiEffectDom extends HTMLElement {
-    style: CSSStyleDeclaration;
-  }
-
-  /** Minimal subset of AsciiEffect we use */
-  interface AsciiEffectInstance {
-    domElement: AsciiEffectDom;
-    setSize: (w: number, h: number) => void;
-    render: (scene: import('three').Scene, camera: import('three').Camera) => void;
-  }
+  // ── Three.js ASCII Scene (Canvas-based renderer) ──
 
   /** State bundle for cleanup */
   interface AsciiState {
     renderer: import('three').WebGLRenderer;
-    effect: AsciiEffectInstance;
     scene: import('three').Scene;
     camera: import('three').PerspectiveCamera;
     geometry: import('three').TorusKnotGeometry;
     material: import('three').MeshPhongMaterial;
     mesh: import('three').Mesh;
     container: HTMLElement;
+    asciiCanvas: HTMLCanvasElement;
+    asciiCtx: CanvasRenderingContext2D;
+    sampleCanvas: HTMLCanvasElement;
+    sampleCtx: CanvasRenderingContext2D;
     resizeObserver: ResizeObserver;
+    visibilityObserver: IntersectionObserver;
+    mouseTarget: HTMLElement;
     onMouseMove: (e: MouseEvent) => void;
+    onVisibilityChange: () => void;
+    onGameModalOpen: () => void;
+    onGameModalClose: () => void;
+    stopLoop: () => void;
+  }
+
+  /** State bundle for the lightweight mobile ASCII animation */
+  interface MobileAsciiState {
+    container: HTMLElement;
+    asciiCanvas: HTMLCanvasElement;
+    resizeObserver: ResizeObserver;
+    visibilityObserver: IntersectionObserver;
+    onVisibilityChange: () => void;
+    onGameModalOpen: () => void;
+    onGameModalClose: () => void;
+    stopLoop: () => void;
   }
 
   let state: AsciiState | null = null;
+  let mobileState: MobileAsciiState | null = null;
 
   // ── Mouse tracking ──
 
@@ -114,8 +130,26 @@ const fallbackBlock: string = lines.join('\n');
   let targetMouseX: number = 0;
   let targetMouseY: number = 0;
 
+  // ── ASCII character ramp (dense → sparse; lookup inverts brightness) ──
+
+  const CHAR_RAMP: string = '@%#*+=:-. ';
+  const RAMP_MAX: number = CHAR_RAMP.length - 1;
+
+  // ── Background glyph pool for animated surrounding area ──
+
+  const BG_GLYPHS: string = '01{}[]<>/\\|;:=+-._#@&*~$%?!^abcdef0123456789ABCDEF';
+  const BG_GLYPH_COUNT: number = BG_GLYPHS.length;
+
+  /** @description Pick a random glyph or space (35% chance of space for sparse look) */
+  function randomBgChar(): string {
+    return Math.random() < 0.35
+      ? ' '
+      : BG_GLYPHS[Math.floor(Math.random() * BG_GLYPH_COUNT)];
+  }
+
   // ── Init ──
 
+  /** @description Initialise the Three.js scene with canvas-based ASCII output */
   async function initAsciiScene(): Promise<void> {
     const container: HTMLElement | null = document.getElementById('ascii-scene');
     if (!container) return;
@@ -125,9 +159,12 @@ const fallbackBlock: string = lines.join('\n');
     const reducedMotion: boolean = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reducedMotion) return;
 
-    // Guard: mobile
+    // Guard: mobile — use lightweight canvas-only animation
     const isMobile: boolean = window.matchMedia('(max-width: 768px)').matches;
-    if (isMobile) return;
+    if (isMobile) {
+      initMobileAscii(container);
+      return;
+    }
 
     // Guard: low-end device hint
     const nav: Navigator = window.navigator;
@@ -135,15 +172,20 @@ const fallbackBlock: string = lines.join('\n');
 
     container.dataset.asciiInit = 'true';
 
-    // Lazy-load Three.js
-    const [THREE, { AsciiEffect }] = await Promise.all([
-      import('three'),
-      import('three/addons/effects/AsciiEffect.js'),
-    ]);
+    // Lazy-load Three.js only (no AsciiEffect needed)
+    const {
+      WebGLRenderer,
+      Scene,
+      PerspectiveCamera,
+      PointLight,
+      TorusKnotGeometry,
+      MeshPhongMaterial,
+      Mesh,
+    } = await import('three');
 
     // ── Renderer ──
 
-    const renderer: import('three').WebGLRenderer = new THREE.WebGLRenderer({
+    const renderer: import('three').WebGLRenderer = new WebGLRenderer({
       alpha: true,
       antialias: false,
     });
@@ -156,11 +198,11 @@ const fallbackBlock: string = lines.join('\n');
 
     // ── Scene ──
 
-    const scene: import('three').Scene = new THREE.Scene();
+    const scene: import('three').Scene = new Scene();
 
     // ── Camera ──
 
-    const camera: import('three').PerspectiveCamera = new THREE.PerspectiveCamera(
+    const camera: import('three').PerspectiveCamera = new PerspectiveCamera(
       70,
       width / height,
       1,
@@ -170,59 +212,400 @@ const fallbackBlock: string = lines.join('\n');
 
     // ── Lighting (warm tones matching the palette) ──
 
-    const light1: import('three').PointLight = new THREE.PointLight(0xE0CCBE, 3, 0, 0);
+    const light1: import('three').PointLight = new PointLight(0xE0CCBE, 3, 0, 0);
     light1.position.set(500, 500, 500);
     scene.add(light1);
 
-    const light2: import('three').PointLight = new THREE.PointLight(0xC9A87C, 1, 0, 0);
+    const light2: import('three').PointLight = new PointLight(0xC9A87C, 1, 0, 0);
     light2.position.set(-500, -500, -500);
     scene.add(light2);
 
     // Cool fill light from below-front for richer shading contrast
-    const light3: import('three').PointLight = new THREE.PointLight(0x8A8477, 0.6, 0, 0);
+    const light3: import('three').PointLight = new PointLight(0x8A8477, 0.6, 0, 0);
     light3.position.set(0, -400, 300);
     scene.add(light3);
 
     // ── Torus Knot ──
 
-    const geometry: import('three').TorusKnotGeometry = new THREE.TorusKnotGeometry(
+    const geometry: import('three').TorusKnotGeometry = new TorusKnotGeometry(
       200, // radius
       60,  // tube
       100, // tubular segments
       12,  // radial segments
     );
 
-    const material: import('three').MeshPhongMaterial = new THREE.MeshPhongMaterial({
+    const material: import('three').MeshPhongMaterial = new MeshPhongMaterial({
       flatShading: true,
     });
 
-    const mesh: import('three').Mesh = new THREE.Mesh(geometry, material);
+    const mesh: import('three').Mesh = new Mesh(geometry, material);
     scene.add(mesh);
 
-    // ── ASCII Effect ──
+    // ── Canvas-based ASCII renderer ──
 
-    const effect: AsciiEffectInstance = new AsciiEffect(
-      renderer,
-      ' .:-=+*#%@',
-      { invert: true, resolution: 0.12 },
-    ) as AsciiEffectInstance;
+    // Sampling resolution: how many ASCII cells across
+    const ASCII_RESOLUTION: number = 0.12;
+    let asciiCols: number = Math.floor(width * ASCII_RESOLUTION);
+    let asciiRows: number = Math.floor(height * ASCII_RESOLUTION * 0.68);
 
-    effect.setSize(width, height);
-    effect.domElement.style.color = '';
-    effect.domElement.style.backgroundColor = 'transparent';
+    // Offscreen canvas for reading WebGL pixels at reduced size
+    const sampleCanvas: HTMLCanvasElement = document.createElement('canvas');
+    sampleCanvas.width = asciiCols;
+    sampleCanvas.height = asciiRows;
+    const sampleCtx: CanvasRenderingContext2D | null = sampleCanvas.getContext('2d', { willReadFrequently: true });
+    if (!sampleCtx) return;
 
-    // Remove the static fallback and insert the ASCII canvas
-    const fallback: HTMLPreElement | null = container.querySelector<HTMLPreElement>('.ascii-fallback');
-    if (fallback) fallback.remove();
-    container.appendChild(effect.domElement);
+    // Visible output canvas for drawing ASCII characters
+    const asciiCanvas: HTMLCanvasElement = document.createElement('canvas');
+    asciiCanvas.className = 'ascii-output';
+    const asciiCtx: CanvasRenderingContext2D | null = asciiCanvas.getContext('2d');
+    if (!asciiCtx) return;
 
-    // ── Mouse tracking ──
+    // Size the output canvas to container
+    asciiCanvas.width = width;
+    asciiCanvas.height = height;
+
+    // Compute cell size for output drawing
+    let cellW: number = width / asciiCols;
+    let cellH: number = height / asciiRows;
+    const FONT_FAMILY: string = '"Fira Code", "Courier New", monospace';
+
+    // Pre-compute font size to fit cells
+    let fontSize: number = Math.floor(Math.min(cellW * 1.2, cellH * 0.95));
+    if (fontSize < 4) fontSize = 4;
+
+    // Hide the static fallback once the animated canvas takes over
+    const fallbackEl: HTMLPreElement | null = container.querySelector<HTMLPreElement>('.ascii-fallback');
+    if (fallbackEl) fallbackEl.style.display = 'none';
+
+    container.appendChild(asciiCanvas);
+
+    // ── Background character grid ──
+
+    /** Pre-generated grid of random characters for the animated background */
+    let bgGrid: string[] = [];
+
+    /** @description Rebuild the background grid to match current ASCII dimensions */
+    function rebuildBgGrid(): void {
+      const total: number = asciiCols * asciiRows;
+      bgGrid = new Array<string>(total);
+      for (let i: number = 0; i < total; i++) {
+        bgGrid[i] = randomBgChar();
+      }
+    }
+
+    rebuildBgGrid();
+
+    /** Interval in ms between background character shuffles */
+    const BG_SHUFFLE_INTERVAL: number = 120;
+    /** Fraction of cells to replace each shuffle tick */
+    const BG_SHUFFLE_RATE: number = 0.03;
+    let lastShuffleTime: number = 0;
+
+    /** @description Randomly replace a fraction of background characters for a living-code effect */
+    function shuffleBgChars(timestamp: number): void {
+      if (timestamp - lastShuffleTime < BG_SHUFFLE_INTERVAL) return;
+      lastShuffleTime = timestamp;
+
+      const total: number = asciiCols * asciiRows;
+      const count: number = Math.max(1, Math.floor(total * BG_SHUFFLE_RATE));
+      for (let i: number = 0; i < count; i++) {
+        const idx: number = Math.floor(Math.random() * total);
+        bgGrid[idx] = randomBgChar();
+      }
+    }
+
+    // ── Resize handler ──
+
+    /** @description Recalculate ASCII grid dimensions and canvas sizes */
+    function handleResize(w: number, h: number): void {
+      if (w === 0 || h === 0) return;
+
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+
+      asciiCols = Math.floor(w * ASCII_RESOLUTION);
+      asciiRows = Math.floor(h * ASCII_RESOLUTION * 0.68);
+
+      sampleCanvas.width = asciiCols;
+      sampleCanvas.height = asciiRows;
+
+      asciiCanvas.width = w;
+      asciiCanvas.height = h;
+
+      cellW = w / asciiCols;
+      cellH = h / asciiRows;
+      fontSize = Math.floor(Math.min(cellW * 1.2, cellH * 0.95));
+      if (fontSize < 4) fontSize = 4;
+
+      rebuildBgGrid();
+    }
+
+    // ── Mouse tracking (scoped to hero section) ──
+
+    const heroSection: HTMLElement | null = container.closest<HTMLElement>('.hero');
+    const mouseTarget: HTMLElement = heroSection ?? container;
+
+    // Cache viewport dimensions for mousemove (updated on resize)
+    let viewW: number = window.innerWidth;
+    let viewH: number = window.innerHeight;
 
     const onMouseMove = (e: MouseEvent): void => {
-      targetMouseX = (e.clientX / window.innerWidth) * 2 - 1;
-      targetMouseY = (e.clientY / window.innerHeight) * 2 - 1;
+      targetMouseX = (e.clientX / viewW) * 2 - 1;
+      targetMouseY = (e.clientY / viewH) * 2 - 1;
     };
-    document.addEventListener('mousemove', onMouseMove);
+
+    // ── Intersection Observer (pause when off-screen) ──
+
+    let isVisible: boolean = true;
+    let gameModalOpen: boolean = false;
+    let animationId: number = 0;
+
+    const visibilityObserver: IntersectionObserver = new IntersectionObserver(
+      (entries: IntersectionObserverEntry[]) => {
+        const wasVisible: boolean = isVisible;
+        isVisible = entries[0]?.isIntersecting ?? true;
+
+        // Add/remove mousemove listener based on visibility
+        if (isVisible && !wasVisible) {
+          mouseTarget.addEventListener('mousemove', onMouseMove);
+          startLoop();
+        } else if (!isVisible && wasVisible) {
+          mouseTarget.removeEventListener('mousemove', onMouseMove);
+          stopLoop();
+        }
+      },
+      { threshold: 0 },
+    );
+    visibilityObserver.observe(container);
+
+    // Start with listener attached if visible
+    mouseTarget.addEventListener('mousemove', onMouseMove);
+
+    const resizeObserver: ResizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      const entry: ResizeObserverEntry | undefined = entries[0];
+      if (!entry) return;
+      const { width: w, height: h } = entry.contentRect;
+      viewW = window.innerWidth;
+      viewH = window.innerHeight;
+      handleResize(w, h);
+    });
+    resizeObserver.observe(container);
+
+    // ── Animation loop (throttled to ~20fps) ──
+
+    const startTime: number = performance.now();
+    const LERP_FACTOR: number = 0.04;
+    const MOUSE_RANGE: number = 30;
+    const FRAME_INTERVAL: number = 1000 / 20;
+    let lastFrameTime: number = 0;
+
+    /** @description Render one frame: Three.js → sample pixels → draw ASCII on canvas */
+    function renderFrame(timer: number): void {
+      // Update Three.js scene
+      mesh.rotation.x = timer * 0.0004;
+      mesh.rotation.z = timer * 0.0003;
+
+      const breathe: number = 1 + Math.sin(timer * 0.001) * 0.02;
+      mesh.scale.setScalar(breathe);
+
+      mouseX += (targetMouseX - mouseX) * LERP_FACTOR;
+      mouseY += (targetMouseY - mouseY) * LERP_FACTOR;
+      camera.position.x = mouseX * MOUSE_RANGE;
+      camera.position.y = 150 + mouseY * -MOUSE_RANGE;
+
+      camera.lookAt(scene.position);
+
+      // Render Three.js scene to its internal WebGL canvas
+      renderer.render(scene, camera);
+
+      // Sample: draw WebGL canvas onto small offscreen canvas, then read pixels
+      sampleCtx!.clearRect(0, 0, asciiCols, asciiRows);
+      sampleCtx!.drawImage(renderer.domElement, 0, 0, asciiCols, asciiRows);
+      const imageData: ImageData = sampleCtx!.getImageData(0, 0, asciiCols, asciiRows);
+      const pixels: Uint8ClampedArray = imageData.data;
+
+      // Shuffle a portion of background characters for living-code effect
+      shuffleBgChars(performance.now());
+
+      // Clear the output canvas and set up font
+      asciiCtx!.clearRect(0, 0, asciiCanvas.width, asciiCanvas.height);
+      asciiCtx!.font = fontSize + 'px ' + FONT_FAMILY;
+      asciiCtx!.textBaseline = 'middle';
+      asciiCtx!.textAlign = 'center';
+
+      // Map each pixel to an ASCII character and draw
+      for (let y: number = 0; y < asciiRows; y++) {
+        const drawY: number = y * cellH + cellH * 0.5;
+        for (let x: number = 0; x < asciiCols; x++) {
+          const offset: number = (y * asciiCols + x) * 4;
+          const a: number = pixels[offset + 3];
+
+          const drawX: number = x * cellW + cellW * 0.5;
+
+          if (a === 0) {
+            // Background cell: draw animated random character at low opacity
+            const bgChar: string = bgGrid[y * asciiCols + x];
+            if (bgChar === ' ') continue;
+            asciiCtx!.fillStyle = 'rgba(224, 204, 190, 0.45)'; // --accent, visible after CSS canvas opacity
+            asciiCtx!.fillText(bgChar, drawX, drawY);
+            continue;
+          }
+
+          // Foreground cell: torus knot ASCII
+          const r: number = pixels[offset];
+          const g: number = pixels[offset + 1];
+          const b: number = pixels[offset + 2];
+
+          // Luminance-based brightness
+          const brightness: number = (0.3 * r + 0.59 * g + 0.11 * b) / 255;
+
+          // Map brightness to character (invert: bright areas → dense chars)
+          const charIdx: number = RAMP_MAX - Math.round(brightness * RAMP_MAX);
+          const ch: string = CHAR_RAMP[charIdx];
+
+          // Skip space characters (empty cells)
+          if (ch === ' ') continue;
+
+          asciiCtx!.fillStyle = '#E0CCBE'; // --accent color
+          asciiCtx!.fillText(ch, drawX, drawY);
+        }
+      }
+    }
+
+    /** @description rAF-based animation loop, throttled to ~20fps */
+    function loop(timestamp: number): void {
+      if (!isVisible || document.hidden || gameModalOpen) {
+        animationId = 0;
+        return;
+      }
+
+      animationId = requestAnimationFrame(loop);
+
+      const delta: number = timestamp - lastFrameTime;
+      if (delta < FRAME_INTERVAL) return;
+      lastFrameTime = timestamp - (delta % FRAME_INTERVAL);
+
+      const timer: number = performance.now() - startTime;
+      renderFrame(timer);
+    }
+
+    /** @description Start the animation loop if not already running */
+    function startLoop(): void {
+      if (animationId !== 0) return;
+      if (gameModalOpen) return;
+      animationId = requestAnimationFrame(loop);
+    }
+
+    /** @description Stop the animation loop */
+    function stopLoop(): void {
+      if (animationId !== 0) {
+        cancelAnimationFrame(animationId);
+        animationId = 0;
+      }
+    }
+
+    // Also pause when tab is hidden
+    const onVisibilityChange = (): void => {
+      if (document.hidden) {
+        stopLoop();
+      } else if (isVisible) {
+        startLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // ── Pause when game modal is open ──
+
+    const onGameModalOpen = (): void => {
+      gameModalOpen = true;
+      stopLoop();
+    };
+
+    const onGameModalClose = (): void => {
+      gameModalOpen = false;
+      if (isVisible && !document.hidden) startLoop();
+    };
+
+    document.addEventListener('game-modal:open', onGameModalOpen);
+    document.addEventListener('game-modal:close', onGameModalClose);
+
+    // ── Start ──
+    startLoop();
+
+    // ── Store state for cleanup ──
+
+    state = {
+      renderer,
+      scene,
+      camera,
+      geometry,
+      material,
+      mesh,
+      container,
+      asciiCanvas,
+      asciiCtx: asciiCtx!,
+      sampleCanvas,
+      sampleCtx: sampleCtx!,
+      resizeObserver,
+      visibilityObserver,
+      mouseTarget,
+      onMouseMove,
+      onVisibilityChange,
+      onGameModalOpen,
+      onGameModalClose,
+      stopLoop,
+    };
+  }
+
+  // ── Lightweight mobile ASCII animation (no Three.js) ──
+
+  /** @description Animate shuffling ASCII characters on mobile without WebGL */
+  function initMobileAscii(container: HTMLElement): void {
+    container.dataset.asciiInit = 'true';
+
+    // Hide the static fallback
+    const fallbackEl: HTMLPreElement | null = container.querySelector<HTMLPreElement>('.ascii-fallback');
+    if (fallbackEl) fallbackEl.style.display = 'none';
+
+    // Create output canvas
+    const asciiCanvas: HTMLCanvasElement = document.createElement('canvas');
+    asciiCanvas.className = 'ascii-output';
+    const asciiCtx: CanvasRenderingContext2D | null = asciiCanvas.getContext('2d');
+    if (!asciiCtx) return;
+
+    container.appendChild(asciiCanvas);
+
+    // ── Grid dimensions ──
+
+    const MOBILE_RESOLUTION: number = 0.08;
+    let width: number = container.clientWidth;
+    let height: number = container.clientHeight;
+    let cols: number = Math.max(1, Math.floor(width * MOBILE_RESOLUTION));
+    let rows: number = Math.max(1, Math.floor(height * MOBILE_RESOLUTION * 0.55));
+    let cellW: number = width / cols;
+    let cellH: number = height / rows;
+    const FONT_FAMILY: string = '"Fira Code", "Courier New", monospace';
+    let fontSize: number = Math.floor(Math.min(cellW * 1.2, cellH * 0.95));
+    if (fontSize < 4) fontSize = 4;
+
+    asciiCanvas.width = width;
+    asciiCanvas.height = height;
+
+    // ── Character grid ──
+
+    let total: number = cols * rows;
+    let grid: string[] = new Array<string>(total);
+    for (let i: number = 0; i < total; i++) {
+      grid[i] = randomBgChar();
+    }
+
+    /** Interval in ms between character shuffles */
+    const SHUFFLE_INTERVAL: number = 150;
+    /** Fraction of cells to replace each tick */
+    const SHUFFLE_RATE: number = 0.025;
+    let lastShuffleTime: number = 0;
 
     // ── Resize ──
 
@@ -231,83 +614,185 @@ const fallbackBlock: string = lines.join('\n');
       if (!entry) return;
       const { width: w, height: h } = entry.contentRect;
       if (w === 0 || h === 0) return;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-      effect.setSize(w, h);
+
+      width = w;
+      height = h;
+      cols = Math.max(1, Math.floor(w * MOBILE_RESOLUTION));
+      rows = Math.max(1, Math.floor(h * MOBILE_RESOLUTION * 0.55));
+      cellW = w / cols;
+      cellH = h / rows;
+      fontSize = Math.floor(Math.min(cellW * 1.2, cellH * 0.95));
+      if (fontSize < 4) fontSize = 4;
+
+      asciiCanvas.width = w;
+      asciiCanvas.height = h;
+
+      total = cols * rows;
+      grid = new Array<string>(total);
+      for (let i: number = 0; i < total; i++) {
+        grid[i] = randomBgChar();
+      }
     });
     resizeObserver.observe(container);
 
-    // ── Intersection Observer (pause when off-screen) ──
+    // ── Visibility ──
 
     let isVisible: boolean = true;
+    let gameModalOpen: boolean = false;
+    let animationId: number = 0;
+
     const visibilityObserver: IntersectionObserver = new IntersectionObserver(
       (entries: IntersectionObserverEntry[]) => {
         isVisible = entries[0]?.isIntersecting ?? true;
+        if (isVisible && !gameModalOpen) {
+          startLoop();
+        } else {
+          stopLoop();
+        }
       },
       { threshold: 0 },
     );
     visibilityObserver.observe(container);
 
-    // ── Animation loop ──
+    // ── Render ──
 
-    const startTime: number = Date.now();
-    const LERP_FACTOR: number = 0.04;
-    const MOUSE_RANGE: number = 30;
+    const FRAME_INTERVAL: number = 1000 / 10;
+    let lastFrameTime: number = 0;
 
-    renderer.setAnimationLoop((): void => {
-      if (!isVisible) return;
+    /** @description Draw the ASCII grid onto the canvas */
+    function renderFrame(timestamp: number): void {
+      // Shuffle a portion of characters
+      if (timestamp - lastShuffleTime >= SHUFFLE_INTERVAL) {
+        lastShuffleTime = timestamp;
+        const count: number = Math.max(1, Math.floor(total * SHUFFLE_RATE));
+        for (let i: number = 0; i < count; i++) {
+          const idx: number = Math.floor(Math.random() * total);
+          grid[idx] = randomBgChar();
+        }
+      }
 
-      const timer: number = Date.now() - startTime;
+      asciiCtx!.clearRect(0, 0, asciiCanvas.width, asciiCanvas.height);
+      asciiCtx!.font = fontSize + 'px ' + FONT_FAMILY;
+      asciiCtx!.textBaseline = 'middle';
+      asciiCtx!.textAlign = 'center';
+      asciiCtx!.fillStyle = '#E0CCBE';
 
-      // Rotate torus knot slowly (~15s per revolution)
-      mesh.rotation.x = timer * 0.0004;
-      mesh.rotation.z = timer * 0.0003;
+      for (let y: number = 0; y < rows; y++) {
+        const drawY: number = y * cellH + cellH * 0.5;
+        for (let x: number = 0; x < cols; x++) {
+          const ch: string = grid[y * cols + x];
+          if (ch === ' ') continue;
+          const drawX: number = x * cellW + cellW * 0.5;
+          asciiCtx!.fillText(ch, drawX, drawY);
+        }
+      }
+    }
 
-      // Subtle breathing scale oscillation
-      const breathe: number = 1 + Math.sin(timer * 0.001) * 0.02;
-      mesh.scale.setScalar(breathe);
+    /** @description rAF-based loop, throttled to ~10fps */
+    function loop(timestamp: number): void {
+      if (!isVisible || document.hidden || gameModalOpen) {
+        animationId = 0;
+        return;
+      }
 
-      // Smooth mouse parallax on camera
-      mouseX += (targetMouseX - mouseX) * LERP_FACTOR;
-      mouseY += (targetMouseY - mouseY) * LERP_FACTOR;
-      camera.position.x = mouseX * MOUSE_RANGE;
-      camera.position.y = 150 + mouseY * -MOUSE_RANGE;
+      animationId = requestAnimationFrame(loop);
 
-      camera.lookAt(scene.position);
-      effect.render(scene, camera);
-    });
+      const delta: number = timestamp - lastFrameTime;
+      if (delta < FRAME_INTERVAL) return;
+      lastFrameTime = timestamp - (delta % FRAME_INTERVAL);
 
-    // ── Store state for cleanup ──
+      renderFrame(timestamp);
+    }
 
-    state = {
-      renderer,
-      effect,
-      scene,
-      camera,
-      geometry,
-      material,
-      mesh,
+    function startLoop(): void {
+      if (animationId !== 0) return;
+      if (gameModalOpen) return;
+      animationId = requestAnimationFrame(loop);
+    }
+
+    function stopLoop(): void {
+      if (animationId !== 0) {
+        cancelAnimationFrame(animationId);
+        animationId = 0;
+      }
+    }
+
+    const onVisibilityChange = (): void => {
+      if (document.hidden) {
+        stopLoop();
+      } else if (isVisible && !gameModalOpen) {
+        startLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    const onGameModalOpen = (): void => {
+      gameModalOpen = true;
+      stopLoop();
+    };
+
+    const onGameModalClose = (): void => {
+      gameModalOpen = false;
+      if (isVisible && !document.hidden) startLoop();
+    };
+
+    document.addEventListener('game-modal:open', onGameModalOpen);
+    document.addEventListener('game-modal:close', onGameModalClose);
+
+    startLoop();
+
+    mobileState = {
       container,
+      asciiCanvas,
       resizeObserver,
-      onMouseMove,
+      visibilityObserver,
+      onVisibilityChange,
+      onGameModalOpen,
+      onGameModalClose,
+      stopLoop,
     };
   }
 
+  /** @description Tear down the mobile ASCII animation */
+  function destroyMobileAscii(): void {
+    if (!mobileState) return;
+
+    mobileState.stopLoop();
+    document.removeEventListener('visibilitychange', mobileState.onVisibilityChange);
+    document.removeEventListener('game-modal:open', mobileState.onGameModalOpen);
+    document.removeEventListener('game-modal:close', mobileState.onGameModalClose);
+
+    mobileState.resizeObserver.disconnect();
+    mobileState.visibilityObserver.disconnect();
+
+    if (mobileState.asciiCanvas.parentNode) {
+      mobileState.asciiCanvas.parentNode.removeChild(mobileState.asciiCanvas);
+    }
+
+    mobileState.container.dataset.asciiInit = '';
+    mobileState = null;
+  }
+
+  /** @description Tear down all Three.js resources and DOM elements */
   function destroyAsciiScene(): void {
     if (!state) return;
 
-    state.renderer.setAnimationLoop(null);
+    state.stopLoop();
+    document.removeEventListener('visibilitychange', state.onVisibilityChange);
+    document.removeEventListener('game-modal:open', state.onGameModalOpen);
+    document.removeEventListener('game-modal:close', state.onGameModalClose);
+
     state.resizeObserver.disconnect();
-    document.removeEventListener('mousemove', state.onMouseMove);
+    state.visibilityObserver.disconnect();
+    state.mouseTarget.removeEventListener('mousemove', state.onMouseMove);
 
     state.geometry.dispose();
     state.material.dispose();
     state.renderer.dispose();
 
-    // Remove the ASCII DOM element
-    if (state.effect.domElement.parentNode) {
-      state.effect.domElement.parentNode.removeChild(state.effect.domElement);
+    // Remove the ASCII canvas element
+    if (state.asciiCanvas.parentNode) {
+      state.asciiCanvas.parentNode.removeChild(state.asciiCanvas);
     }
 
     // Reset init flag so it can re-initialize after swap
@@ -324,5 +809,8 @@ const fallbackBlock: string = lines.join('\n');
 
   void initAsciiScene();
   document.addEventListener('astro:after-swap', (): void => { void initAsciiScene(); });
-  document.addEventListener('astro:before-swap', destroyAsciiScene);
+  document.addEventListener('astro:before-swap', (): void => {
+    destroyMobileAscii();
+    destroyAsciiScene();
+  });
 </script>

@@ -46,7 +46,7 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    backdrop-filter: blur(4px);
+    contain: content;
   }
 
   #techstack::before,
@@ -59,6 +59,7 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
   }
 
   #techstack::before {
+    inset: -34px;
     background:
       linear-gradient(
         140deg,
@@ -75,13 +76,16 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
         color-mix(in srgb, var(--accent) 1.8%, transparent) 0 1px,
         transparent 1px 34px
       );
-    background-position: 0 0, 0 0, 0 0;
     opacity: 0.85;
+    will-change: transform;
     animation: tech-backplane-drift 30s linear infinite;
   }
 
   #techstack::after {
-    inset: -6% -4%;
+    top: -6%;
+    bottom: -6%;
+    left: -110%;
+    right: -110%;
     background:
       linear-gradient(
         108deg,
@@ -89,9 +93,11 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
         color-mix(in srgb, var(--accent) 16%, transparent) 50%,
         transparent 76%
       );
-    background-size: 220% 100%;
-    background-position: 120% 0;
+    background-size: 75% 100%;
+    background-position: 50% 0;
+    background-repeat: no-repeat;
     opacity: 0.24;
+    will-change: transform;
     animation: tech-backplane-sweep 22s ease-in-out infinite;
   }
 
@@ -102,21 +108,21 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
 
   @keyframes tech-backplane-drift {
     0% {
-      background-position: 0 0, 0 0, 0 0;
+      transform: translate(0, 0);
     }
     100% {
-      background-position: 0 0, 0 34px, 34px 0;
+      transform: translate(34px, 34px);
     }
   }
 
   @keyframes tech-backplane-sweep {
     0%,
     20% {
-      background-position: 120% 0;
+      transform: translateX(40%);
     }
     80%,
     100% {
-      background-position: -20% 0;
+      transform: translateX(-40%);
     }
   }
 
@@ -124,39 +130,6 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 0;
-  }
-
-  @keyframes tech-scan {
-    0% {
-      background-position: 120% 0;
-    }
-    100% {
-      background-position: -20% 0;
-    }
-  }
-
-  @keyframes tech-arrow-pulse {
-    0% {
-      opacity: 0.2;
-    }
-    40% {
-      opacity: 0.78;
-    }
-    100% {
-      opacity: 0.65;
-    }
-  }
-
-  @keyframes tech-ring-pulse {
-    0% {
-      opacity: 0.2;
-    }
-    45% {
-      opacity: 0.95;
-    }
-    100% {
-      opacity: 0.75;
-    }
   }
 
   .tech-row {
@@ -170,7 +143,7 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
     border-right: 1px solid color-mix(in srgb, var(--accent) 8%, transparent);
     position: relative;
     overflow: hidden;
-    isolation: isolate;
+    contain: layout paint;
   }
 
   .tech-row::before,
@@ -226,7 +199,6 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
   .tech-row:focus-visible::after,
   .tech-row:active::after {
     opacity: 0.5;
-    animation: tech-scan 900ms ease-out 1;
   }
 
   .tech-row:focus-visible .tech-name,
@@ -238,7 +210,6 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
   .tech-row:active .tech-arrow {
     opacity: 0.65;
     color: var(--tech-accent);
-    animation: tech-arrow-pulse 700ms ease-out 1;
   }
 
   .tech-row:focus-visible {
@@ -249,7 +220,6 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
   .tech-row:focus-visible .tech-icon-cell::after,
   .tech-row:active .tech-icon-cell::after {
     opacity: 0.75;
-    animation: tech-ring-pulse 800ms ease-out 1;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -259,7 +229,6 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
 
     .tech-row:hover::after {
       opacity: 0.5;
-      animation: tech-scan 900ms ease-out 1;
     }
 
     .tech-row:hover .tech-name {
@@ -269,12 +238,10 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
     .tech-row:hover .tech-arrow {
       opacity: 0.65;
       color: var(--tech-accent);
-      animation: tech-arrow-pulse 700ms ease-out 1;
     }
 
     .tech-row:hover .tech-icon-cell::after {
       opacity: 0.75;
-      animation: tech-ring-pulse 800ms ease-out 1;
     }
   }
 
@@ -374,17 +341,10 @@ const techItems: CollectionEntry<'tech'>[] = await getActiveTech();
     #techstack::after {
       animation: none;
     }
+  }
 
-    .tech-row:hover::after,
-    .tech-row:focus-visible::after,
-    .tech-row:active::after,
-    .tech-row:hover .tech-arrow,
-    .tech-row:focus-visible .tech-arrow,
-    .tech-row:active .tech-arrow,
-    .tech-row:hover .tech-icon-cell::after,
-    .tech-row:focus-visible .tech-icon-cell::after,
-    .tech-row:active .tech-icon-cell::after {
-      animation: none;
-    }
+  #techstack[data-offscreen]::before,
+  #techstack[data-offscreen]::after {
+    animation-play-state: paused;
   }
 </style>

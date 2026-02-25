@@ -59,7 +59,7 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    backdrop-filter: blur(4px);
+    contain: content;
   }
 
   #projects::before,
@@ -72,6 +72,7 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
   }
 
   #projects::before {
+    inset: -38px;
     background:
       linear-gradient(
         136deg,
@@ -88,13 +89,16 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
         color-mix(in srgb, var(--accent) 1.8%, transparent) 0 1px,
         transparent 1px 38px
       );
-    background-position: 0 0, 0 0, 0 0;
     opacity: 0.82;
+    will-change: transform;
     animation: projects-grid-drift 26s linear infinite;
   }
 
   #projects::after {
-    inset: -6% -4%;
+    top: -6%;
+    bottom: -6%;
+    left: -110%;
+    right: -110%;
     background:
       linear-gradient(
         112deg,
@@ -102,9 +106,11 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
         color-mix(in srgb, var(--highlight) 17%, transparent) 50%,
         transparent 76%
       );
-    background-size: 225% 100%;
-    background-position: 130% 0;
+    background-size: 75% 100%;
+    background-position: 50% 0;
+    background-repeat: no-repeat;
     opacity: 0.2;
+    will-change: transform;
     animation: projects-beam-pass 18s ease-in-out infinite;
   }
 
@@ -115,21 +121,21 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
 
   @keyframes projects-grid-drift {
     0% {
-      background-position: 0 0, 0 0, 0 0;
+      transform: translate(0, 0);
     }
     100% {
-      background-position: 0 0, 0 38px, 38px 0;
+      transform: translate(38px, 38px);
     }
   }
 
   @keyframes projects-beam-pass {
     0%,
     18% {
-      background-position: 130% 0;
+      transform: translateX(40%);
     }
     82%,
     100% {
-      background-position: -24% 0;
+      transform: translateX(-40%);
     }
   }
 
@@ -148,26 +154,6 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
     }
     100% {
       background-position: 0 36px;
-    }
-  }
-
-  @keyframes project-image-breathe {
-    0%,
-    100% {
-      filter: saturate(0.95) contrast(0.97) brightness(0.95);
-    }
-    50% {
-      filter: saturate(1.08) contrast(1.03) brightness(1.02);
-    }
-  }
-
-  @keyframes project-number-pulse {
-    0%,
-    100% {
-      opacity: 0.2;
-    }
-    50% {
-      opacity: 0.44;
     }
   }
 
@@ -201,7 +187,7 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
     border-bottom: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
     position: relative;
     overflow: hidden;
-    isolation: isolate;
+    contain: layout paint;
     background: linear-gradient(
       90deg,
       color-mix(in srgb, var(--bg-alt) 14%, transparent) 0%,
@@ -241,7 +227,7 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
       linear-gradient(var(--highlight), var(--highlight)) left 0.45rem bottom 0.45rem / 1px 1.2rem no-repeat,
       linear-gradient(var(--highlight), var(--highlight)) right 0.45rem bottom 0.45rem / 1.2rem 1px no-repeat,
       linear-gradient(var(--highlight), var(--highlight)) right 0.45rem bottom 0.45rem / 1px 1.2rem no-repeat;
-    opacity: 0.16;
+    opacity: 0;
   }
 
   .project-card > * {
@@ -301,7 +287,6 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
     height: 100%;
     object-fit: cover;
     object-position: 50% 50%;
-    filter: saturate(0.95) contrast(0.97) brightness(0.95);
     display: block;
   }
 
@@ -379,7 +364,7 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
 
   .project-card:is(:focus-visible, :active)::before {
     opacity: 0.56;
-    animation: project-card-beam 3.4s ease-in-out infinite alternate;
+    animation: project-card-beam 1.2s ease-out 1 both;
   }
 
   .project-card:is(:focus-visible, :active)::after {
@@ -388,19 +373,15 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
 
   .project-card:is(:focus-visible, :active) .project-image::before {
     opacity: 0.22;
-    animation: project-image-scan 2200ms linear infinite;
+    animation: project-image-scan 1.8s ease-out 1 both;
   }
 
   .project-card:is(:focus-visible, :active) .project-image::after {
     opacity: 0.46;
   }
 
-  .project-card:is(:focus-visible, :active) .project-image img {
-    animation: project-image-breathe 2.2s ease-in-out infinite;
-  }
-
   .project-card:is(:focus-visible, :active) .project-number {
-    animation: project-number-pulse 1.6s ease-in-out infinite;
+    opacity: 0.4;
   }
 
   .project-card:is(:focus-visible, :active) .project-header h3 {
@@ -432,7 +413,7 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
   @media (hover: hover) and (pointer: fine) {
     .project-card:hover::before {
       opacity: 0.56;
-      animation: project-card-beam 3.4s ease-in-out infinite alternate;
+      animation: project-card-beam 1.2s ease-out 1 both;
     }
 
     .project-card:hover::after {
@@ -441,19 +422,15 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
 
     .project-card:hover .project-image::before {
       opacity: 0.22;
-      animation: project-image-scan 2200ms linear infinite;
+      animation: project-image-scan 1.8s ease-out 1 both;
     }
 
     .project-card:hover .project-image::after {
       opacity: 0.46;
     }
 
-    .project-card:hover .project-image img {
-      animation: project-image-breathe 2.2s ease-in-out infinite;
-    }
-
     .project-card:hover .project-number {
-      animation: project-number-pulse 1.6s ease-in-out infinite;
+      opacity: 0.4;
     }
 
     .project-card:hover .project-header h3 {
@@ -511,16 +488,15 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
     .project-card:hover .project-image::before,
     .project-card:focus-visible .project-image::before,
     .project-card:active .project-image::before,
-    .project-card:hover .project-image img,
-    .project-card:focus-visible .project-image img,
-    .project-card:active .project-image img,
-    .project-card:hover .project-number,
-    .project-card:focus-visible .project-number,
-    .project-card:active .project-number,
     .project-card:hover .tag,
     .project-card:focus-visible .tag,
     .project-card:active .tag {
       animation: none;
     }
+  }
+
+  #projects[data-offscreen]::before,
+  #projects[data-offscreen]::after {
+    animation-play-state: paused;
   }
 </style>

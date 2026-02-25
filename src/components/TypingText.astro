@@ -37,6 +37,9 @@ const {
 >{texts[0]}</span>
 
 <script>
+  // ── Active timer IDs for cleanup ──
+  let activeTimers: number[] = [];
+
   function initTyping(): void {
     document.querySelectorAll<HTMLElement>('[data-texts]').forEach((el: HTMLElement): void => {
       if (el.dataset.initialized) return;
@@ -58,10 +61,38 @@ const {
       let phraseIndex: number = 0;
       let charIndex: number = 0;
       let isDeleting: boolean = false;
+      let isVisible: boolean = true;
+      let pendingTick: boolean = false;
+      let destroyed: boolean = false;
 
       el.textContent = '';
 
+      // ── Pause animation when off-screen ──
+      const observer: IntersectionObserver = new IntersectionObserver(
+        (entries: IntersectionObserverEntry[]): void => {
+          isVisible = entries[0]?.isIntersecting ?? true;
+          if (isVisible && pendingTick) {
+            pendingTick = false;
+            scheduleTick(speed);
+          }
+        },
+        { threshold: 0 },
+      );
+      observer.observe(el);
+
+      function scheduleTick(delay: number): void {
+        const id: number = window.setTimeout(tick, delay);
+        activeTimers.push(id);
+      }
+
       function tick(): void {
+        if (destroyed) return;
+
+        if (!isVisible) {
+          pendingTick = true;
+          return;
+        }
+
         const current: string = texts[phraseIndex];
 
         if (!isDeleting) {
@@ -72,13 +103,16 @@ const {
           if (charIndex === current.length) {
             if (!loop && phraseIndex === texts.length - 1) {
               // Done — one pass, last phrase complete
+              observer.disconnect();
               return;
             }
             // Pause then start deleting
-            setTimeout((): void => {
+            const id: number = window.setTimeout((): void => {
+              if (destroyed) return;
               isDeleting = true;
               tick();
             }, pauseMs);
+            activeTimers.push(id);
             return;
           }
         } else {
@@ -93,11 +127,21 @@ const {
         }
 
         const delay: number = isDeleting ? speed / 2 : speed;
-        setTimeout(tick, delay);
+        scheduleTick(delay);
       }
 
       // Start after a short delay to let the page settle
-      setTimeout(tick, 400);
+      scheduleTick(400);
+
+      // Cleanup on page navigation (view transitions)
+      document.addEventListener('astro:before-swap', (): void => {
+        destroyed = true;
+        observer.disconnect();
+        for (const id of activeTimers) {
+          clearTimeout(id);
+        }
+        activeTimers = [];
+      }, { once: true });
     });
   }
 

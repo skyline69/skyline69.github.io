@@ -42,7 +42,7 @@
   font-display: swap;
 }
 
-/* ── Noto Sans Self-Hosted (Fallback Text Face) ── */
+/* ── Noto Sans Self-Hosted (Fallback Text Face — Latin subset) ── */
 
 @font-face {
   font-family: 'Noto Sans';
@@ -50,6 +50,9 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -58,6 +61,9 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -66,6 +72,9 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 /* ── Design Tokens ── */
@@ -160,28 +169,7 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background:
-    radial-gradient(
-      112% 88% at 50% 50%,
-      color-mix(in srgb, var(--rain-center-mask) 72%, transparent) 0%,
-      color-mix(in srgb, var(--rain-center-mask) 48%, transparent) 50%,
-      transparent 78%
-    ),
-    radial-gradient(
-      128% 118% at 50% 50%,
-      transparent 52%,
-      color-mix(in srgb, var(--rain-vignette) 88%, transparent) 100%
-    ),
-    radial-gradient(
-      74% 58% at 14% 14%,
-      color-mix(in srgb, var(--rain-glow) 12%, transparent) 0%,
-      transparent 74%
-    ),
-    radial-gradient(
-      78% 62% at 88% 86%,
-      color-mix(in srgb, var(--rain-glow) 10%, transparent) 0%,
-      transparent 76%
-    );
+  background: url('/assets/body-gradient.webp') center / cover no-repeat;
 }
 
 body > * {

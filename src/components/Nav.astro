@@ -39,27 +39,6 @@ const links: NavLink[] = [
     if (nav.dataset.navInitialized === 'true') return;
     nav.dataset.navInitialized = 'true';
 
-    // ── Solid background on scroll ──
-
-    let ticking: boolean = false;
-
-    function onScroll(): void {
-      if (!ticking) {
-        requestAnimationFrame((): void => {
-          if (window.scrollY > 80) {
-            nav!.classList.add('nav--solid');
-          } else {
-            nav!.classList.remove('nav--solid');
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-
     // ── Active link highlighting via scroll position ──
 
     const navLinks: NodeListOf<HTMLAnchorElement> =
@@ -85,8 +64,10 @@ const links: NavLink[] = [
     // Tolerance for treating sections as same-row (in pixels)
     const ROW_TOLERANCE: number = 10;
 
-    let activeTicking: boolean = false;
+    let ticking: boolean = false;
     let currentActiveId: string = '';
+
+    // ── Cached section positions — recalculated only on resize ──
 
     interface SectionInfo {
       id: string;
@@ -102,21 +83,10 @@ const links: NavLink[] = [
       sections: SectionInfo[];
     }
 
-    function setActiveLink(activeLink: HTMLAnchorElement | null): void {
-      navLinks.forEach((link: HTMLAnchorElement): void => {
-        link.classList.remove('nav-active');
-      });
+    let cachedSections: SectionInfo[] = [];
+    let cachedRows: SectionRow[] = [];
 
-      if (activeLink) {
-        activeLink.classList.add('nav-active');
-        const href: string | null = activeLink.getAttribute('href');
-        currentActiveId = href ? href.replace('#', '') : '';
-      } else {
-        currentActiveId = '';
-      }
-    }
-
-    function getSections(): SectionInfo[] {
+    function cacheSectionPositions(): void {
       const sections: SectionInfo[] = [];
       for (const target of targets) {
         const el: HTMLElement | null = document.getElementById(target.id);
@@ -139,12 +109,10 @@ const links: NavLink[] = [
         return verticalDelta;
       });
 
-      return sections;
-    }
+      cachedSections = sections;
 
-    function groupSectionsByRow(sections: SectionInfo[]): SectionRow[] {
+      // Group into rows
       const rows: SectionRow[] = [];
-
       for (const section of sections) {
         const lastRow: SectionRow | undefined = rows[rows.length - 1];
         if (!lastRow || Math.abs(section.top - lastRow.top) > ROW_TOLERANCE) {
@@ -155,26 +123,35 @@ const links: NavLink[] = [
           });
           continue;
         }
-
         lastRow.sections.push(section);
         lastRow.bottom = Math.max(lastRow.bottom, section.bottom);
       }
+      cachedRows = rows;
+    }
 
-      return rows;
+    function setActiveLink(activeLink: HTMLAnchorElement | null): void {
+      navLinks.forEach((link: HTMLAnchorElement): void => {
+        link.classList.remove('nav-active');
+      });
+
+      if (activeLink) {
+        activeLink.classList.add('nav-active');
+        const href: string | null = activeLink.getAttribute('href');
+        currentActiveId = href ? href.replace('#', '') : '';
+      } else {
+        currentActiveId = '';
+      }
     }
 
     function updateActiveLink(): void {
       const detectionLine: number = window.scrollY + window.innerHeight * DETECTION_RATIO;
-      const sections: SectionInfo[] = getSections();
-      if (sections.length === 0) {
+      if (cachedSections.length === 0) {
         setActiveLink(null);
         return;
       }
 
-      const rows: SectionRow[] = groupSectionsByRow(sections);
       let activeRow: SectionRow | null = null;
-
-      for (const row of rows) {
+      for (const row of cachedRows) {
         if (row.top <= detectionLine + ROW_TOLERANCE) {
           activeRow = row;
         }
@@ -209,14 +186,36 @@ const links: NavLink[] = [
       setActiveLink(activeRow.sections[0]?.link ?? null);
     }
 
-    function onActiveScroll(): void {
-      if (!activeTicking) {
+    // ── Single consolidated scroll handler ──
+
+    function onScroll(): void {
+      if (!ticking) {
         requestAnimationFrame((): void => {
+          // Nav background toggle
+          if (window.scrollY > 80) {
+            nav!.classList.add('nav--solid');
+          } else {
+            nav!.classList.remove('nav--solid');
+          }
+
+          // Active link update
           updateActiveLink();
-          activeTicking = false;
+
+          ticking = false;
         });
-        activeTicking = true;
+        ticking = true;
       }
+    }
+
+    // ── Debounced resize recalculates section positions ──
+
+    let resizeTimer: number = 0;
+    function onResize(): void {
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout((): void => {
+        cacheSectionPositions();
+        updateActiveLink();
+      }, 150);
     }
 
     navLinks.forEach((link: HTMLAnchorElement): void => {
@@ -225,10 +224,21 @@ const links: NavLink[] = [
       });
     });
 
-    window.addEventListener('scroll', onActiveScroll, { passive: true });
-    window.addEventListener('resize', onActiveScroll);
+    // Initial calculation
+    cacheSectionPositions();
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
     window.addEventListener('hashchange', updateActiveLink);
-    updateActiveLink();
+    onScroll();
+
+    // Cleanup on page navigation (view transitions)
+    document.addEventListener('astro:before-swap', (): void => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('hashchange', updateActiveLink);
+      clearTimeout(resizeTimer);
+    }, { once: true });
   }
 
   initNav();
@@ -245,17 +255,16 @@ const links: NavLink[] = [
     padding: 0.75rem 0;
     background: transparent;
     border-bottom: 1px solid transparent;
-    backdrop-filter: blur(0px);
     transition:
       background 320ms ease,
-      border-bottom-color 320ms ease,
-      backdrop-filter 320ms ease;
+      border-bottom-color 320ms ease;
   }
 
   .site-nav.nav--solid {
-    background: color-mix(in srgb, var(--bg-alt) 80%, transparent);
+    background: color-mix(in srgb, var(--bg-alt) 82%, transparent);
     border-bottom-color: color-mix(in srgb, var(--accent) 10%, transparent);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .nav-inner {

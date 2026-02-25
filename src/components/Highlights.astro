@@ -30,7 +30,7 @@ const highlights: CollectionEntry<'highlights'>[] = await getActiveHighlights();
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    backdrop-filter: blur(4px);
+    contain: content;
     background:
       linear-gradient(
         140deg,
@@ -93,7 +93,8 @@ const highlights: CollectionEntry<'highlights'>[] = await getActiveHighlights();
         transparent 79%
       );
     background-size: 135% 135%, 145% 145%;
-    background-position: 22% 26%, 78% 74%;
+    background-position: 20% 24%, 80% 76%;
+    will-change: transform;
     animation: highlights-background-drift 22s ease-in-out infinite;
     animation-delay: -5.5s;
   }
@@ -106,10 +107,10 @@ const highlights: CollectionEntry<'highlights'>[] = await getActiveHighlights();
   @keyframes highlights-background-drift {
     0%,
     100% {
-      background-position: 22% 26%, 78% 74%;
+      transform: translate(2.7%, 2.7%);
     }
     50% {
-      background-position: 18% 22%, 82% 78%;
+      transform: translate(-2.7%, -2.7%);
     }
   }
 
@@ -205,7 +206,6 @@ const highlights: CollectionEntry<'highlights'>[] = await getActiveHighlights();
 
     #highlights::after {
       opacity: 0.3;
-      background-size: 145% 145%, 160% 160%;
       animation-duration: 24s;
     }
   }
@@ -214,5 +214,9 @@ const highlights: CollectionEntry<'highlights'>[] = await getActiveHighlights();
     #highlights::after {
       animation: none;
     }
+  }
+
+  #highlights[data-offscreen]::after {
+    animation-play-state: paused;
   }
 </style>

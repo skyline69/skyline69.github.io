@@ -60,7 +60,9 @@ import { Icon } from 'astro-icon/components';
     border-top: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
     padding: 1rem 0;
     font-size: 0.75rem;
-    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .footer-inner {
@@ -117,8 +119,7 @@ import { Icon } from 'astro-icon/components';
     width: 2.25rem;
     height: 2.25rem;
     border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-    background: color-mix(in srgb, var(--bg-alt) 85%, transparent);
-    backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--bg-alt) 94%, transparent);
     color: var(--accent);
     display: inline-flex;
     align-items: center;
@@ -195,4 +196,44 @@ import { Icon } from 'astro-icon/components';
 
   initScrollTop();
   document.addEventListener('astro:after-swap', initScrollTop);
+
+  // ── Pause off-screen section animations ──
+
+  /** @description Toggles data-offscreen on sections to pause CSS transform animations */
+  let sectionPauseObserver: IntersectionObserver | null = null;
+
+  function initSectionPause(): void {
+    if (sectionPauseObserver) {
+      sectionPauseObserver.disconnect();
+      sectionPauseObserver = null;
+    }
+
+    const ids: string[] = ['about', 'highlights', 'techstack', 'projects'];
+    const sections: HTMLElement[] = ids
+      .map((id: string): HTMLElement | null => document.getElementById(id))
+      .filter((el: HTMLElement | null): el is HTMLElement => el !== null);
+
+    if (sections.length === 0) return;
+
+    sectionPauseObserver = new IntersectionObserver(
+      (entries: IntersectionObserverEntry[]): void => {
+        for (const entry of entries) {
+          const section: HTMLElement = entry.target as HTMLElement;
+          if (entry.isIntersecting) {
+            section.removeAttribute('data-offscreen');
+          } else {
+            section.setAttribute('data-offscreen', '');
+          }
+        }
+      },
+      { rootMargin: '100px 0px' },
+    );
+
+    for (const section of sections) {
+      sectionPauseObserver.observe(section);
+    }
+  }
+
+  initSectionPause();
+  document.addEventListener('astro:after-swap', initSectionPause);
 </script>
