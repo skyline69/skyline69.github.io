@@ -7,6 +7,7 @@ interface Props {
 }
 
 const { title = 'Efe/@skyline69' } = Astro.props;
+const isProduction: boolean = import.meta.env.PROD;
 ---
 
 <!doctype html>
@@ -28,6 +29,14 @@ const { title = 'Efe/@skyline69' } = Astro.props;
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content="Efe's developer portfolio — projects, tech stack, and more." />
+    {isProduction && (
+      <script
+        is:inline
+        defer
+        src="https://analytics.dasguney.com/script.js"
+        data-website-id="80596796-dd36-4627-a4c8-5215c41378cd"
+      ></script>
+    )}
     <title>{title}</title>
   </head>
   <body>
