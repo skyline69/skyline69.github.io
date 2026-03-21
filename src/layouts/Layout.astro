@@ -20,8 +20,8 @@ const isProduction: boolean = import.meta.env.PROD;
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content="Efe's developer portfolio — projects, tech stack, and more." />
     <link rel="preload" href="/fonts/fira-code/FiraCode-Regular.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/fira-code/FiraCode-SemiBold.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/fira-code/FiraCode-Bold.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Atkinson_Hyperlegible/AtkinsonHyperlegible-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content="Efe's developer portfolio — projects, tech stack, and more." />
@@ -30,12 +30,17 @@ const isProduction: boolean = import.meta.env.PROD;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content="Efe's developer portfolio — projects, tech stack, and more." />
     {isProduction && (
-      <script
-        is:inline
-        defer
-        src="https://analytics.dasguney.com/script.js"
-        data-website-id="80596796-dd36-4627-a4c8-5215c41378cd"
-      ></script>
+      <Fragment>
+        <link rel="dns-prefetch" href="https://analytics.dasguney.com" />
+        <link rel="preconnect" href="https://analytics.dasguney.com" crossorigin />
+        <script
+          is:inline
+          defer
+          fetchpriority="low"
+          src="https://analytics.dasguney.com/script.js"
+          data-website-id="80596796-dd36-4627-a4c8-5215c41378cd"
+        ></script>
+      </Fragment>
     )}
     <title>{title}</title>
   </head>
