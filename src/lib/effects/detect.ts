@@ -33,6 +33,20 @@ function supportsWebGl2(): boolean {
 }
 
 /**
+ * WebGL on a real GPU. OGL leaves `gl` undefined when the browser refuses a context, so
+ * callers probe first. Software rendering (no GPU, or a blocklisted one) counts as
+ * unsupported: shaders would run on the CPU and stall the page.
+ */
+export function supportsFastWebGl(): boolean {
+  const attributes: WebGLContextAttributes = { failIfMajorPerformanceCaveat: true };
+  const probe: HTMLCanvasElement = document.createElement('canvas');
+  return (
+    probe.getContext('webgl2', attributes) !== null ||
+    probe.getContext('webgl', attributes) !== null
+  );
+}
+
+/**
  * True when the user asked for reduced motion.
  */
 export function prefersReducedMotion(): boolean {

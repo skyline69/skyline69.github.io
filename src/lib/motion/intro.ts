@@ -51,7 +51,8 @@ export async function playIntro(
     type: 'lines',
     mask: 'lines',
     linesClass: 'intro-line',
-    aria: 'auto',
+    // Line spans read naturally, so no ARIA: `aria-label` is not allowed on a paragraph.
+    aria: 'none',
     // Re-split on resize so lines still break correctly. Only the first split animates.
     autoSplit: true,
     onSplit: (self: SplitText): void => {

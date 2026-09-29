@@ -1,5 +1,7 @@
 import { gsap } from 'gsap';
 import { Mesh, Program, Renderer, Texture, Triangle } from 'ogl';
+import { supportsFastWebGl } from '../effects/detect';
+import { createFrameBudget, type FrameBudget } from './frame-budget';
 
 // ── Fire: a WebGL shader (via OGL) that burns above the name ──
 // The name is drawn once into a soft mask texture. Every pixel gathers "heat" from the
@@ -155,14 +157,6 @@ function drawMask(mask: HTMLCanvasElement, host: HTMLElement, source: HTMLElemen
   });
 }
 
-/**
- * OGL leaves `gl` undefined when the browser refuses a context, so probe first.
- */
-function supportsWebGl(): boolean {
-  const probe: HTMLCanvasElement = document.createElement('canvas');
-  return probe.getContext('webgl2') !== null || probe.getContext('webgl') !== null;
-}
-
 interface FireScene {
   renderer: Renderer;
   mesh: Mesh;
@@ -215,7 +209,7 @@ export function createFire(
   source: HTMLElement,
   reducedMotion: boolean,
 ): Fire | null {
-  if (reducedMotion || !supportsWebGl()) {
+  if (reducedMotion || !supportsFastWebGl()) {
     return null;
   }
   const { renderer, mesh, texture, mask, time, aspect, intensity }: FireScene = buildScene();
@@ -229,16 +223,13 @@ export function createFire(
     texture.needsUpdate = true;
   };
 
-  const tick = (_time: number, deltaMs: number): void => {
-    time.value += Math.min(deltaMs / 1000, 0.05);
-    renderer.render({ scene: mesh });
-  };
-
-  new ResizeObserver(resize).observe(host);
   // `burning` is what was asked for; `ticking` is whether frames are still drawn,
-  // which outlasts `burning` while the fire dies down.
+  // which outlasts `burning` while the fire dies down. `tooSlow` is set for good once
+  // the device cannot keep the shader smooth.
   let burning: boolean = false;
   let ticking: boolean = false;
+  let tooSlow: boolean = false;
+  const budget: FrameBudget = createFrameBudget();
 
   const halt = (): void => {
     if (ticking) {
@@ -248,12 +239,39 @@ export function createFire(
     }
   };
 
+  const douse = (): void => {
+    burning = false;
+    gsap.to(intensity, {
+      value: 0,
+      duration: 0.7,
+      ease: 'power2.in',
+      overwrite: true,
+      onComplete: (): void => {
+        if (!burning) {
+          halt();
+        }
+      },
+    });
+  };
+
+  function tick(_time: number, deltaMs: number): void {
+    time.value += Math.min(deltaMs / 1000, 0.05);
+    renderer.render({ scene: mesh });
+    if (burning && budget.sample(deltaMs)) {
+      tooSlow = true;
+      douse();
+    }
+  }
+
+  new ResizeObserver(resize).observe(host);
+
   return {
     start: (delay: number): void => {
-      if (burning) {
+      if (burning || tooSlow) {
         return;
       }
       burning = true;
+      budget.reset();
       void document.fonts.ready.then(resize);
       if (!ticking) {
         ticking = true;
@@ -263,21 +281,9 @@ export function createFire(
       gsap.to(intensity, { value: 1, duration: 1.4, delay, ease: 'power2.out', overwrite: true });
     },
     stop: (): void => {
-      if (!burning) {
-        return;
+      if (burning) {
+        douse();
       }
-      burning = false;
-      gsap.to(intensity, {
-        value: 0,
-        duration: 0.7,
-        ease: 'power2.in',
-        overwrite: true,
-        onComplete: (): void => {
-          if (!burning) {
-            halt();
-          }
-        },
-      });
     },
   };
 }

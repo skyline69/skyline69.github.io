@@ -1,7 +1,7 @@
 ---
 /**
- * HTML shell: meta tags, agent discovery links, font preloads, structured data, origin trial
- * token and analytics.
+ * HTML shell: meta tags, agent discovery links, font preloads, structured data and origin
+ * trial token.
  */
 import '../styles/global.css';
 import { ORIGIN_TRIAL_TOKEN } from 'astro:env/server';
@@ -19,7 +19,6 @@ const { title, description, author, jsonLd }: Props = Astro.props;
 const site: URL = Astro.site ?? DEFAULT_SITE;
 const canonical: string = new URL(Astro.url.pathname, site).href;
 const ogImage: string = new URL('/og.png', site).href;
-const isProduction: boolean = import.meta.env.PROD;
 ---
 
 <!doctype html>
@@ -83,21 +82,6 @@ const isProduction: boolean = import.meta.env.PROD;
 
     <script type="application/ld+json" set:html={jsonLd} />
 
-    {
-      isProduction && (
-        <Fragment>
-          <link rel="dns-prefetch" href="https://analytics.dasguney.com" />
-          <link rel="preconnect" href="https://analytics.dasguney.com" crossorigin />
-          <script
-            is:inline
-            defer
-            fetchpriority="low"
-            src="https://analytics.dasguney.com/script.js"
-            data-website-id="80596796-dd36-4627-a4c8-5215c41378cd"
-          />
-        </Fragment>
-      )
-    }
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

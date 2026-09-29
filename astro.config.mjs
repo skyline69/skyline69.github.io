@@ -4,6 +4,10 @@ import { defineConfig, envField } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://dasguney.com',
+  // The stylesheet is small; inlining it removes the only render-blocking request.
+  build: {
+    inlineStylesheets: 'always',
+  },
   env: {
     schema: {
       // Chrome origin trial token for the HTML-in-Canvas API (Canvas UI effects).

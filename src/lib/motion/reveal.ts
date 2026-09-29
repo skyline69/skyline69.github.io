@@ -10,7 +10,8 @@ function wordsOf(element: HTMLElement): Element[] {
   if (existing) {
     return existing.words;
   }
-  const split: SplitText = SplitText.create(element, { type: 'words', aria: 'auto' });
+  // Word spans read naturally, so no ARIA: `aria-label` is not allowed on a paragraph.
+  const split: SplitText = SplitText.create(element, { type: 'words', aria: 'none' });
   splits.set(element, split);
   return split.words;
 }
