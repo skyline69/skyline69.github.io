@@ -74,5 +74,6 @@ export async function playIntro(
     .timeline({ defaults: { ease: 'expo.out' } })
     .set(targets, { autoAlpha: 1 })
     .from(letters.chars, { yPercent: 110, skewY: 12, duration: 0.75, stagger: 0.06 }, 0)
-    .add(revealScene(scene), 0.3);
+    // The intro text is the page's LCP element; it rises in with the letters, not after.
+    .add(revealScene(scene), 0);
 }
