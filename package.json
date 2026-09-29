@@ -9,14 +9,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.6",
-    "@iconify-json/lucide": "^1.2.93",
-    "astro": "^5.17.1",
-    "astro-icon": "^1.1.5",
-    "three": "^0.183.1",
-    "typescript": "^5.9.3"
+    "@astrojs/check": "^0.9.10",
+    "@iconify-json/lucide": "^1.2.137",
+    "astro": "^7.3.5",
+    "astro-icon": "^1.2.0",
+    "three": "^0.186.1",
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "@types/three": "^0.183.1"
+    "@types/three": "^0.186.0"
   }
 }

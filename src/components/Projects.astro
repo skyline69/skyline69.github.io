@@ -33,7 +33,7 @@ const projects: CollectionEntry<'projects'>[] = await getActiveProjects();
                 {String(i + 1).padStart(2, '0')}
               </span>
               <h3>
-                {project.data.title}
+                {project.data.title}{' '}
                 <span class="arrow" aria-hidden="true">
                   <Icon name="lucide:arrow-right" size={14} />
                 </span>
