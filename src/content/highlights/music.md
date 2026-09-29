@@ -1,6 +1,7 @@
 ---
-title: "Music Taste"
-body: "R&B, Hip-Hop, Pop, Rap, Hardcore Rap"
-order: 3
+title: 'On repeat'
+body: 'R&B, hip-hop, pop, rap and'
+accent: 'hardcore rap.'
+order: 2
 active: true
 ---

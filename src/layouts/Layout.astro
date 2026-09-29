@@ -1,52 +1,106 @@
 ---
+/**
+ * HTML shell: meta tags, agent discovery links, font preloads, structured data, origin trial
+ * token and analytics.
+ */
 import '../styles/global.css';
-import CodeRain from '../components/CodeRain.astro';
+import { ORIGIN_TRIAL_TOKEN } from 'astro:env/server';
+import { AGENT_PATHS } from '../lib/agents';
+import { DEFAULT_SITE } from '../lib/site';
 
 interface Props {
-  title?: string;
+  title: string;
+  description: string;
+  author: string;
+  jsonLd: string;
 }
 
-const { title = 'Efe/@skyline69' } = Astro.props;
+const { title, description, author, jsonLd }: Props = Astro.props;
+const site: URL = Astro.site ?? DEFAULT_SITE;
+const canonical: string = new URL(Astro.url.pathname, site).href;
+const ogImage: string = new URL('/og.png', site).href;
 const isProduction: boolean = import.meta.env.PROD;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="generator" content={Astro.generator} />
-    <meta name="description" content="Efe's developer portfolio — projects, tech stack, and more." />
-    <link rel="preload" href="/fonts/fira-code/FiraCode-Regular.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/fira-code/FiraCode-Bold.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/Atkinson_Hyperlegible/AtkinsonHyperlegible-Regular.woff2" as="font" type="font/woff2" crossorigin />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content="Efe's developer portfolio — projects, tech stack, and more." />
-    <meta property="og:url" content="https://dasguney.dev" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content="Efe's developer portfolio — projects, tech stack, and more." />
-    {isProduction && (
-      <Fragment>
-        <link rel="dns-prefetch" href="https://analytics.dasguney.com" />
-        <link rel="preconnect" href="https://analytics.dasguney.com" crossorigin />
-        <script
-          is:inline
-          defer
-          fetchpriority="low"
-          src="https://analytics.dasguney.com/script.js"
-          data-website-id="80596796-dd36-4627-a4c8-5215c41378cd"
-        ></script>
-      </Fragment>
-    )}
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={author} />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="text/markdown" href={AGENT_PATHS.markdown} title="Markdown" />
+    <link rel="alternate" type="text/plain" href={AGENT_PATHS.llms} title="llms.txt" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" type="application/xml" href={AGENT_PATHS.sitemap} />
+    <link
+      rel="preload"
+      href="/fonts/instrument-serif/InstrumentSerif-Italic.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/instrument-serif/InstrumentSerif-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={title} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={title} />
+
+    {ORIGIN_TRIAL_TOKEN && <meta http-equiv="origin-trial" content={ORIGIN_TRIAL_TOKEN} />}
+
+    <script type="application/ld+json" set:html={jsonLd} />
+
+    {
+      isProduction && (
+        <Fragment>
+          <link rel="dns-prefetch" href="https://analytics.dasguney.com" />
+          <link rel="preconnect" href="https://analytics.dasguney.com" crossorigin />
+          <script
+            is:inline
+            defer
+            fetchpriority="low"
+            src="https://analytics.dasguney.com/script.js"
+            data-website-id="80596796-dd36-4627-a4c8-5215c41378cd"
+          />
+        </Fragment>
+      )
+    }
   </head>
   <body>
-    <a href="#main" class="skip-link">Skip to content</a>
-    <CodeRain />
+    <a class="skip-link" href="#main">Skip to content</a>
     <slot />
   </body>
 </html>

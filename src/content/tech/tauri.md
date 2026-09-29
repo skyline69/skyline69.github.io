@@ -1,8 +1,7 @@
 ---
-name: "Tauri"
-icon: "./tauri.svg"
-url: "https://tauri.app/"
-accent: "#24C8DB"
-order: 7
+name: 'Tauri'
+icon: './tauri.svg'
+url: 'https://tauri.app/'
+order: 4
 active: true
 ---

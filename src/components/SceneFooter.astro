@@ -1,0 +1,132 @@
+---
+/**
+ * Bottom bar of a scene: link back, progress through the stage, link forward (or a call to action).
+ */
+import Icon from './Icon.astro';
+import { SCENE_IDS, SCENE_LABELS, indexOfScene, type SceneId } from '../lib/scenes/state';
+
+interface Props {
+  current: SceneId;
+  cta?: { href: string; label: string };
+}
+
+const { current, cta }: Props = Astro.props;
+const index: number = indexOfScene(current);
+const prev: SceneId | undefined = SCENE_IDS[index - 1];
+const next: SceneId | undefined = SCENE_IDS[index + 1];
+---
+
+<footer class="scene-footer" data-reveal>
+  {
+    prev ? (
+      <a class="step step--prev" href={`#${prev}`}>
+        <Icon name="arrow-left" />
+        {SCENE_LABELS[prev]}
+      </a>
+    ) : (
+      <span />
+    )
+  }
+  <ol class="progress" aria-label={`Scene ${index + 1} of ${SCENE_IDS.length}`}>
+    {
+      SCENE_IDS.map((id: SceneId, i: number) => (
+        <li class:list={['segment', { 'segment--done': i < index, 'segment--current': i === index }]}>
+          <span class="visually-hidden">{SCENE_LABELS[id]}</span>
+        </li>
+      ))
+    }
+  </ol>
+  {
+    cta ? (
+      <a class="pill-button" href={cta.href}>
+        {cta.label}
+        <Icon name="arrow-up-right" size={14} />
+      </a>
+    ) : next ? (
+      <a class="step step--next" href={`#${next}`}>
+        {SCENE_LABELS[next]}
+        <Icon name="arrow-right" />
+      </a>
+    ) : (
+      <span />
+    )
+  }
+</footer>
+
+<style>
+  .scene-footer {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+    min-height: var(--footer-h);
+  }
+
+  .step {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    color: var(--haze);
+    font-size: var(--text-base);
+  }
+
+  .step--next {
+    justify-self: end;
+    color: var(--ink);
+  }
+
+  .step:hover {
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .scene-footer > .pill-button {
+    justify-self: end;
+  }
+
+  .progress {
+    display: flex;
+    gap: 8px;
+  }
+
+  .segment {
+    width: clamp(28px, 4vw, 56px);
+    height: 2px;
+    background: var(--plum);
+  }
+
+  .segment--done {
+    background: var(--glow);
+  }
+
+  .segment--current {
+    background: var(--orchid);
+  }
+
+  @media (max-width: 480px) {
+    .scene-footer {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 12px;
+    }
+
+    .progress {
+      justify-self: center;
+      gap: 5px;
+    }
+
+    .segment {
+      width: 18px;
+    }
+
+    .step {
+      gap: 8px;
+    }
+
+    .scene-footer > .pill-button {
+      min-height: 44px;
+      padding: 0 16px;
+      font-size: var(--text-sm);
+    }
+  }
+</style>

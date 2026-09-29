@@ -1,8 +1,7 @@
 ---
-name: "SQLite"
-icon: "./sqlite.svg"
-url: "https://www.sqlite.org/"
-accent: "#0F80CC"
-order: 12
+name: 'SQLite'
+icon: './sqlite.svg'
+url: 'https://www.sqlite.org/'
+order: 13
 active: true
 ---

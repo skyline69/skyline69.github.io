@@ -1,8 +1,7 @@
 ---
-name: "Go"
-icon: "./go.svg"
-url: "https://golang.org/"
-accent: "#00ADD8"
-order: 8
+name: 'Go'
+icon: './go.svg'
+url: 'https://golang.org/'
+order: 5
 active: true
 ---

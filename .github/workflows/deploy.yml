@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,8 +12,30 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Type check, lint, format, test, build
+        run: bun run verify
+
+  build:
+    needs: verify
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      # Chrome origin trial token for HTML-in-Canvas. Set it as a repository variable;
+      # when empty, the site ships without it and every effect uses its fallback.
+      ORIGIN_TRIAL_TOKEN: ${{ vars.ORIGIN_TRIAL_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -23,6 +46,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

@@ -1,6 +1,6 @@
 ---
-title: "Interests & Hobbies"
-body: "Computer Engineering, Playing Piano/Guitar, Going to the Gym & cars"
+title: 'Off the keyboard'
+body: 'Piano and guitar, the gym, cars, and computer engineering.'
 order: 1
 active: true
 ---

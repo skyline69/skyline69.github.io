@@ -1,0 +1,328 @@
+---
+/**
+ * Scene 03: every tool as a hexagon tile with its logo, laid out as a honeycomb.
+ * All tiles rest in a calm state until one is hovered, focused or tapped.
+ */
+import { Image } from 'astro:assets';
+import SceneFooter from '../SceneFooter.astro';
+import type { TechTile } from '../../lib/content';
+import { formatUsedIn, type StackItem } from '../../lib/stack';
+
+interface Props {
+  items: readonly StackItem<TechTile>[];
+}
+
+interface Cell {
+  row: number;
+  col: number;
+}
+
+/** Tiles per honeycomb row: wide screens, then phones. */
+const WIDE_ROWS: readonly number[] = [5, 4, 5];
+const NARROW_ROWS: readonly number[] = [4, 3, 4, 3];
+
+const { items }: Props = Astro.props;
+
+/**
+ * Grid cell for every tile. Each tile spans two half-columns; shorter rows are centred,
+ * which offsets them by half a tile and makes the honeycomb interlock.
+ */
+function honeycomb(rows: readonly number[], count: number): Cell[] {
+  const widest: number = Math.max(...rows);
+  const cells: Cell[] = [];
+  rows.forEach((size: number, r: number): void => {
+    for (let j: number = 0; j < size && cells.length < count; j += 1) {
+      cells.push({ row: r + 1, col: widest - size + 1 + j * 2 });
+    }
+  });
+  return cells;
+}
+
+const wide: Cell[] = honeycomb(WIDE_ROWS, items.length);
+const narrow: Cell[] = honeycomb(NARROW_ROWS, items.length);
+
+function cellStyle(i: number): string {
+  const w: Cell = wide[i] ?? { row: 1, col: 1 };
+  const n: Cell = narrow[i] ?? { row: 1, col: 1 };
+  return `--r: ${w.row}; --c: ${w.col}; --nr: ${n.row}; --nc: ${n.col}`;
+}
+---
+
+<section id="stack" class="scene scene--stack" data-scene="stack" aria-labelledby="stack-title">
+  <h2 id="stack-title" class="visually-hidden" data-scene-focus tabindex="-1">Stack</h2>
+  <div class="scene-body stack">
+    <div class="stack-field" data-stack-field>
+      <span class="stack-spot" data-stack-spot aria-hidden="true"></span>
+      <svg class="stack-links" data-stack-links aria-hidden="true"></svg>
+      <ul class="hex-grid" style={`--wide-cols: ${Math.max(...WIDE_ROWS) * 2}; --narrow-cols: ${Math.max(...NARROW_ROWS) * 2}`}>
+        {
+          items.map((item: StackItem<TechTile>, i: number) => (
+            <li class="hex-cell" style={cellStyle(i)} data-reveal-pop>
+              <button
+                type="button"
+                class="hex"
+                data-stack-tile
+                data-name={item.name}
+                data-related={item.related.join(',')}
+                data-used-in={formatUsedIn(item.usedIn)}
+                data-state="idle"
+                aria-pressed="false"
+              >
+                <span class="hex-face" data-hex-face>
+                  <span class="hex-logo">
+                    <Image class="hex-logo-tint" src={item.icon} alt="" width={64} height={64} loading="eager" />
+                    <Image class="hex-logo-color" src={item.icon} alt="" width={64} height={64} loading="eager" />
+                  </span>
+                  <span class="hex-name">{item.name}</span>
+                </span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="stack-detail" aria-live="polite" data-stack-detail>
+      <em class="stack-name" data-stack-name></em>
+      <p class="stack-text" data-stack-text></p>
+    </div>
+  </div>
+  <SceneFooter current="stack" />
+</section>
+
+<style>
+  .stack {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 16px;
+  }
+
+  /* ── Field: spotlight, link lines, honeycomb ── */
+  .stack-field {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+  }
+
+  .stack-spot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 520px;
+    height: 520px;
+    margin: -260px 0 0 -260px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(142, 5, 194, 0.32), rgba(142, 5, 194, 0));
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .stack-links {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .stack-links :global(path) {
+    fill: none;
+    stroke: var(--glow);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(199, 125, 255, 0.8));
+  }
+
+  .hex-grid {
+    --hex-w: clamp(96px, 10.4vw, 150px);
+    --hex-h: calc(var(--hex-w) * 1.1547);
+    --gap: clamp(8px, 0.8vw, 12px);
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(var(--wide-cols), calc(var(--hex-w) / 2 + var(--gap) / 2));
+    grid-auto-rows: calc(var(--hex-h) * 0.75 + var(--gap) * 0.87);
+    padding-bottom: calc(var(--hex-h) * 0.25);
+    perspective: 900px;
+  }
+
+  .hex-cell {
+    grid-row: var(--r);
+    grid-column: var(--c) / span 2;
+    width: var(--hex-w);
+    height: var(--hex-h);
+  }
+
+  /* ── Tile ── */
+  .hex {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: var(--plum);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    transform-style: preserve-3d;
+  }
+
+  .hex-face {
+    position: absolute;
+    inset: 1.5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8%;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background: radial-gradient(circle at 50% 30%, #1a0526, var(--panel) 70%);
+  }
+
+  /* Two copies of each logo: a static purple tint and the full colour version. States
+     only fade their opacity, which Safari animates smoothly (it lags on filter changes). */
+  .hex-logo {
+    position: relative;
+    width: 36%;
+    height: 36%;
+  }
+
+  .hex-logo :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: opacity 0.3s ease;
+  }
+
+  .hex-logo :global(.hex-logo-tint) {
+    filter: grayscale(1) sepia(1) hue-rotate(230deg) saturate(2.4) brightness(1.05);
+    opacity: 0.85;
+  }
+
+  .hex-logo :global(.hex-logo-color) {
+    opacity: 0;
+  }
+
+  .hex-name {
+    color: var(--haze);
+    transition: color 0.35s ease;
+    font-size: clamp(14px, 1.15vw, 18px);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .hex[data-state='dim'] .hex-logo :global(.hex-logo-tint) {
+    opacity: 0.4;
+  }
+
+  .hex[data-state='dim'] .hex-name {
+    color: var(--dim);
+  }
+
+  .hex[data-state='related'] {
+    background: var(--violet);
+  }
+
+  .hex[data-state='related'] .hex-logo :global(.hex-logo-tint) {
+    opacity: 1;
+  }
+
+  .hex[data-state='related'] .hex-name {
+    color: var(--ink);
+  }
+
+  .hex[data-state='active'] {
+    background: linear-gradient(160deg, var(--glow), var(--orchid) 55%, var(--plum));
+  }
+
+  .hex[data-state='active'] .hex-face {
+    background: radial-gradient(circle at 50% 35%, rgba(142, 5, 194, 0.55), var(--panel) 72%);
+  }
+
+  .hex[data-state='active'] .hex-logo :global(.hex-logo-tint) {
+    opacity: 0;
+  }
+
+  .hex[data-state='active'] .hex-logo :global(.hex-logo-color) {
+    opacity: 1;
+  }
+
+  .hex[data-state='active'] .hex-name {
+    color: var(--ink);
+  }
+
+  .hex:focus-visible {
+    outline: none;
+    background: var(--ink);
+  }
+
+  /* ── Detail ── */
+  .stack-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 620px;
+    /* Room for two lines of text, so a long entry never pushes the honeycomb up. */
+    min-height: calc(clamp(34px, 3.2vw, 46px) + var(--text-lg) * 1.35 * 2 + 6px);
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 0.35s ease,
+      transform 0.35s ease;
+  }
+
+  .stack-detail:global(.is-visible) {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stack-detail,
+    .hex-logo :global(img),
+    .hex-name {
+      transition: none;
+    }
+  }
+
+  .stack-name {
+    font-size: clamp(34px, 3.2vw, 46px);
+    line-height: 1;
+    color: var(--glow);
+  }
+
+  .stack-text {
+    font-size: var(--text-lg);
+    line-height: 1.35;
+  }
+
+  @media (max-width: 768px) {
+    .hex-grid {
+      --hex-w: min(78px, 20vw);
+      grid-template-columns: repeat(var(--narrow-cols), calc(var(--hex-w) / 2 + var(--gap) / 2));
+    }
+
+    .hex-cell {
+      grid-row: var(--nr);
+      grid-column: var(--nc) / span 2;
+    }
+
+    .hex-name {
+      font-size: 12px;
+    }
+  }
+
+  /* ── Phones in landscape: tiles sized by height so the honeycomb fits ── */
+  @media (orientation: landscape) and (max-height: 540px) {
+    .hex-grid {
+      --hex-w: min(10.4vw, 21vh);
+    }
+
+    .hex-name {
+      font-size: 12px;
+    }
+  }
+</style>

@@ -1,0 +1,207 @@
+---
+/**
+ * Stage shell: background mist plus the scenes. With JavaScript it becomes one fixed screen;
+ * without it, the scenes stack as a normal page.
+ */
+---
+
+<main id="main" class="stage" data-stage>
+  <div class="stage-inner" data-effect-content>
+    <div class="mist" aria-hidden="true">
+      <span class="mist-blob mist-blob--a" data-mist></span>
+      <span class="mist-blob mist-blob--b" data-mist></span>
+      <span class="mist-blob mist-blob--c" data-mist></span>
+    </div>
+    <slot />
+    <div class="wipe-seam" data-wipe-seam aria-hidden="true"></div>
+  </div>
+</main>
+
+<style is:global>
+  /* ── Stage ── */
+  .stage,
+  .stage-inner {
+    position: relative;
+  }
+
+  /* The stage paints the large viewport, so the purple reaches under Safari's toolbars;
+     scenes stay within the dynamic viewport, so their content ends above them. */
+  html.js .stage {
+    position: fixed;
+    inset: 0 0 auto;
+    height: 100lvh;
+    overflow: hidden;
+    background: var(--void);
+  }
+
+  html.js .stage-inner {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* ── Mist ── */
+  .mist {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .mist-blob {
+    position: absolute;
+    width: 70vmax;
+    height: 70vmax;
+    margin: -35vmax 0 0 -35vmax;
+    border-radius: 50%;
+  }
+
+  .mist-blob--a {
+    left: -8vw;
+    top: 62vh;
+    background: radial-gradient(closest-side, rgba(62, 6, 95, 0.9), rgba(62, 6, 95, 0));
+  }
+
+  .mist-blob--b {
+    left: 78vw;
+    top: -8vh;
+    background: radial-gradient(closest-side, rgba(112, 11, 151, 0.45), rgba(112, 11, 151, 0));
+  }
+
+  .mist-blob--c {
+    left: 88vw;
+    top: 88vh;
+    background: radial-gradient(closest-side, rgba(142, 5, 194, 0.3), rgba(142, 5, 194, 0));
+  }
+
+  /* ── Wipe seam: a blurred band that rides the moving edge between two scenes ── */
+  .wipe-seam {
+    position: absolute;
+    top: -12%;
+    bottom: -12%;
+    left: 0;
+    z-index: 9999;
+    width: clamp(90px, 9vw, 170px);
+    margin-left: calc(clamp(90px, 9vw, 170px) / -2);
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    backdrop-filter: blur(18px) saturate(1.3);
+    background: linear-gradient(
+      90deg,
+      rgba(142, 5, 194, 0) 0%,
+      rgba(142, 5, 194, 0.22) 50%,
+      rgba(142, 5, 194, 0) 100%
+    );
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+    will-change: transform, opacity;
+  }
+
+  html:not(.js) .wipe-seam {
+    display: none;
+  }
+
+  /* ── Scenes ── */
+  .scene {
+    position: relative;
+    z-index: 1;
+    min-height: 100svh;
+    display: grid;
+    /* One column, never wider than the screen, whatever its widest child wants. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(min-content, 1fr) auto;
+    gap: 24px;
+    padding: calc(var(--header-h) + env(safe-area-inset-top))
+      calc(var(--gutter) + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom))
+      calc(var(--gutter) + env(safe-area-inset-left));
+  }
+
+  html.js .scene {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 100dvh;
+    min-height: 0;
+    visibility: hidden;
+    opacity: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  html.js .scene.is-active {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .scene-body {
+    position: relative;
+    min-height: 0;
+  }
+
+  /* ── Touch screens: the page itself scrolls, like a normal site ──
+     The active scene sits in the document flow, so Safari shows it through its toolbars
+     and scrolls it natively. During a switch every scene overlays the top of the page. */
+  @media (hover: none) and (pointer: coarse) {
+    html.js .stage {
+      position: relative;
+      inset: auto;
+      height: auto;
+      overflow: visible;
+      overflow-anchor: none;
+    }
+
+    /* The seam rides the incoming scene, wherever on the page it sits. */
+    html.js .stage-inner.is-switching .wipe-seam {
+      top: calc(var(--switch-top, 0px) - var(--switch-height, 100svh) * 0.12);
+      bottom: auto;
+      height: calc(var(--switch-height, 100svh) * 1.24);
+    }
+
+    /* Clipped both ways: decorations (the wipe band, the fire) must not add scroll room;
+       the page is exactly as tall as the active scene. */
+    html.js .stage-inner {
+      position: relative;
+      inset: auto;
+      min-height: 100svh;
+      overflow: clip;
+    }
+
+    /* Below the page, Safari shows the body colour (the chin) under its toolbar. The page's
+       last stretch fades over the mist into that colour, so no edge shows between them.
+       During a switch the fade sits where the incoming scene will end (--page-end). */
+    html.js .stage-inner::after {
+      content: '';
+      position: absolute;
+      top: calc(var(--page-end, 100%) - 200px);
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(to bottom, transparent, var(--chin) 200px);
+      pointer-events: none;
+    }
+
+    /* Exactly one small viewport tall when the content fits, so short scenes never scroll. */
+    html.js .scene {
+      height: auto;
+      min-height: 100svh;
+      overflow: visible;
+    }
+
+    html.js .scene.is-active {
+      position: relative;
+    }
+
+    html.js .stage-inner.is-switching .scene {
+      position: absolute;
+    }
+  }
+
+  /* Very wide screens: keep scene content together instead of pushing it to the edges. */
+  .scene > * {
+    width: 100%;
+    max-width: 1840px;
+    justify-self: center;
+  }
+</style>

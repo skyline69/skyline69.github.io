@@ -1,8 +1,7 @@
 ---
-name: "QT"
-icon: "./qt.svg"
-url: "https://www.qt.io/"
-accent: "#41CD52"
-order: 10
+name: 'Qt'
+icon: './qt.svg'
+url: 'https://www.qt.io/'
+order: 11
 active: true
 ---

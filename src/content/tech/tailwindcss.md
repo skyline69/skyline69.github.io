@@ -1,8 +1,7 @@
 ---
-name: "TailwindCSS"
-icon: "./tailwindcss.svg"
-url: "https://tailwindcss.com/"
-accent: "#38BDF8"
-order: 4
+name: 'Tailwind CSS'
+icon: './tailwindcss.svg'
+url: 'https://tailwindcss.com/'
+order: 14
 active: true
 ---

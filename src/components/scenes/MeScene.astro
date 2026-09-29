@@ -1,0 +1,199 @@
+---
+/**
+ * Scene 04: a short introduction, three facts, and cards for life off the keyboard.
+ */
+import SceneFooter from '../SceneFooter.astro';
+
+export interface MeCard {
+  title: string;
+  body: string;
+  accent?: string | undefined;
+}
+
+interface Props {
+  name: string;
+  summary: readonly string[];
+  origin: string;
+  languages: readonly string[];
+  next: string;
+  cards: readonly MeCard[];
+  githubUrl: string;
+}
+
+const { name, summary, origin, languages, next, cards, githubUrl }: Props = Astro.props;
+---
+
+<section id="me" class="scene scene--me" data-scene="me" aria-labelledby="me-title">
+  <div class="scene-body me">
+    <div class="me-main">
+      <h2 id="me-title" class="me-title" data-reveal data-scene-focus tabindex="-1">
+        Hi, I'm <span class="me-name">{name}.</span>
+      </h2>
+      {
+        summary.map((text: string, i: number) => (
+          <p class:list={['me-text', { 'me-text--muted': i > 0 }]} data-reveal-words>
+            {text}
+          </p>
+        ))
+      }
+      <dl class="me-facts" data-reveal>
+        <div>
+          <dt>From</dt>
+          <dd>{origin}</dd>
+        </div>
+        <div>
+          <dt>Speaks</dt>
+          <dd>{languages.join(', ')}</dd>
+        </div>
+        <div>
+          <dt>Next</dt>
+          <dd>{next}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="me-cards">
+      {
+        cards.map((card: MeCard) => (
+          <article class="me-card" data-reveal>
+            <h3 class="me-card-title">{card.title}</h3>
+            <p class="me-card-body">
+              {card.body}
+              {card.accent && <em>{card.accent}</em>}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+  <SceneFooter current="me" cta={{ href: githubUrl, label: 'Say hi on GitHub' }} />
+</section>
+
+<style>
+  .me {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 556px);
+    align-items: center;
+    gap: clamp(24px, 5vw, 88px);
+  }
+
+  .me-main {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 2.6vh, 26px);
+    max-width: 720px;
+  }
+
+  .me-title {
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(64px, 9.2vw, 132px);
+    line-height: 0.9;
+    letter-spacing: -0.015em;
+    outline: none;
+  }
+
+  .me-name {
+    color: var(--glow);
+  }
+
+  .me-text {
+    font-size: clamp(22px, 2.1vw, 30px);
+    line-height: 1.28;
+  }
+
+  .me-text--muted {
+    color: var(--haze);
+  }
+
+  .me-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--plum);
+  }
+
+  .me-facts div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .me-facts dt {
+    color: var(--haze);
+    font-size: var(--text-sm);
+  }
+
+  .me-facts dd {
+    font-style: italic;
+    font-size: clamp(20px, 1.8vw, 26px);
+    line-height: 1.15;
+  }
+
+  .me-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .me-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px 28px;
+    border: 1px solid var(--plum);
+    border-radius: 22px;
+    background: rgba(62, 6, 95, 0.28);
+  }
+
+  .me-card-title {
+    font-weight: 400;
+    color: var(--haze);
+    font-size: var(--text-sm);
+  }
+
+  .me-card-body {
+    font-size: clamp(22px, 2vw, 28px);
+    line-height: 1.25;
+  }
+
+  .me-card-body em {
+    margin-left: 0.25em;
+    color: var(--glow);
+  }
+
+  @media (max-width: 1024px) {
+    .me {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .me-facts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* ── Phones in landscape: intro and cards side by side ── */
+  @media (orientation: landscape) and (max-height: 540px) {
+    .me {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      align-content: start;
+    }
+
+    .me-title {
+      font-size: clamp(44px, 7vw, 64px);
+    }
+
+    .me-text,
+    .me-card-body {
+      font-size: 18px;
+    }
+
+    .me-facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

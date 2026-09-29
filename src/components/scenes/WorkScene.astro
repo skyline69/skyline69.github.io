@@ -1,0 +1,407 @@
+---
+/**
+ * Scene 02: big project titles on the left, the active project's image on the right.
+ * Every project's details are in the HTML; the script only switches which one shows.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from '../Icon.astro';
+import SceneFooter from '../SceneFooter.astro';
+
+export interface WorkProject {
+  title: string;
+  description: string;
+  note?: string | undefined;
+  tags: readonly string[];
+  archived: boolean;
+  href: string;
+  linkLabel: string;
+  repoUrl: string;
+  showRepoLink: boolean;
+  image: ImageMetadata;
+  visual: 'screenshot' | 'icon';
+}
+
+interface Props {
+  projects: readonly WorkProject[];
+}
+
+const { projects }: Props = Astro.props;
+const first: WorkProject | undefined = projects[0];
+const pad = (n: number): string => String(n).padStart(2, '0');
+---
+
+<section id="work" class="scene scene--work" data-scene="work" aria-labelledby="work-title">
+  <h2 id="work-title" class="visually-hidden" data-scene-focus tabindex="-1">Work</h2>
+  <div class="scene-body work">
+    <div class="work-main">
+      <ol class="work-list" data-reveal>
+        {
+          projects.map((project: WorkProject, i: number) => (
+            <li>
+              <a
+                class:list={['work-item', { 'work-item--archived': project.archived }]}
+                href={project.href}
+                data-work-item
+                data-index={i}
+                data-title={project.title}
+                data-active={i === 0 ? '' : undefined}
+              >
+                <em class="work-num">{pad(i + 1)}</em>
+                <span class="work-title">{project.title}</span>
+                {project.archived && <span class="work-badge">Archived</span>}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="work-details">
+        {
+          projects.map((project: WorkProject, i: number) => (
+            <div class:list={['work-detail', { 'is-active': i === 0 }]} data-work-detail data-index={i}>
+              <h3 class="visually-hidden">{project.title}</h3>
+              <p class="work-desc">{project.description}</p>
+              {project.note && <p class="work-note">{project.note}</p>}
+              <p class="work-tags">
+                {project.tags.map((tag: string) => (
+                  <em>{tag}</em>
+                ))}
+              </p>
+              <div class="work-links">
+                <a class="pill-button" href={project.href}>
+                  {project.linkLabel}
+                  <Icon name="arrow-up-right" size={14} />
+                </a>
+                {project.showRepoLink && (
+                  <a class="pill-button pill-button--ghost" href={project.repoUrl}>
+                    Source
+                  </a>
+                )}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    {
+      first && (
+        <a class="work-frame" href={first.href} aria-label={`Open ${first.title}`} data-work-frame data-reveal data-effect="liquid">
+          <div class="work-frame-inner" data-effect-content>
+            {projects.map((project: WorkProject, i: number) => (
+              <figure
+                class:list={['work-figure', `work-figure--${project.visual}`, { 'is-active': i === 0 }]}
+                data-work-figure
+                data-index={i}
+              >
+                <Image
+                  src={project.image}
+                  alt={`${project.title} ${project.visual === 'icon' ? 'app icon' : 'screenshot'}`}
+                  widths={project.visual === 'icon' ? [320, 640] : [560, 1120]}
+                  sizes={project.visual === 'icon' ? '320px' : '(max-width: 1024px) 90vw, 560px'}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              </figure>
+            ))}
+            <div class="work-shutter" aria-hidden="true">
+              {Array.from({ length: 6 }, () => (
+                <span class="work-blind" data-work-blind />
+              ))}
+            </div>
+          </div>
+          <span class="visit-disc" data-visit-disc aria-hidden="true">Visit</span>
+        </a>
+      )
+    }
+  </div>
+  <SceneFooter current="work" />
+</section>
+
+<style>
+  .work {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.95fr);
+    align-items: center;
+    gap: clamp(24px, 4vw, 64px);
+  }
+
+  .work-main {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(20px, 3vh, 36px);
+    min-width: 0;
+  }
+
+  /* ── Titles ── */
+  .work-item {
+    display: flex;
+    align-items: baseline;
+    gap: clamp(12px, 1.4vw, 20px);
+    color: var(--dim);
+  }
+
+  .work-item:hover {
+    text-decoration: none;
+  }
+
+  .work-item[data-active] {
+    color: var(--ink);
+  }
+
+  .work-num {
+    flex: none;
+    width: 2ch;
+    font-size: var(--text-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .work-item[data-active] .work-num {
+    color: var(--glow);
+  }
+
+  .work-title {
+    font-size: clamp(40px, 4.8vw, 76px);
+    line-height: 1.12;
+    white-space: nowrap;
+  }
+
+  .work-badge {
+    align-self: center;
+    flex: none;
+    border: 1px solid var(--dim);
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: var(--text-sm);
+    color: var(--haze);
+    white-space: nowrap;
+  }
+
+  /* ── Details ── */
+  .work-details {
+    display: grid;
+    padding-left: calc(2ch + clamp(12px, 1.4vw, 20px));
+    max-width: 660px;
+  }
+
+  .work-detail {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    visibility: hidden;
+  }
+
+  .work-detail.is-active {
+    visibility: visible;
+  }
+
+  :global(html:not(.js)) .work-detail {
+    grid-area: auto;
+    visibility: visible;
+    padding-bottom: 32px;
+  }
+
+  .work-desc {
+    font-size: var(--text-xl);
+    line-height: 1.3;
+  }
+
+  .work-note {
+    color: var(--haze);
+    font-size: var(--text-base);
+  }
+
+  .work-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    color: var(--glow);
+    font-size: var(--text-lg);
+  }
+
+  .work-links {
+    display: flex;
+    gap: 12px;
+    padding-top: 4px;
+  }
+
+  /* ── Frame ── */
+  .work-frame {
+    position: relative;
+    display: block;
+    height: min(68vh, 780px);
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid var(--plum);
+    background: var(--panel);
+  }
+
+  .work-frame-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .work-figure {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    display: grid;
+    place-items: center;
+  }
+
+  .work-figure.is-active {
+    visibility: visible;
+  }
+
+  .work-figure--screenshot :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .work-figure--icon {
+    background: radial-gradient(circle at 50% 50%, rgba(142, 5, 194, 0.45), rgba(11, 1, 18, 0) 60%);
+  }
+
+  .work-figure--icon :global(img) {
+    width: min(55%, 300px);
+    height: auto;
+  }
+
+  /* ── Shutter: blinds that cover the frame while the image swaps ── */
+  .work-shutter {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    pointer-events: none;
+  }
+
+  .work-blind {
+    flex: 1;
+    height: 100%;
+    margin-right: -1px;
+    background: linear-gradient(to bottom, var(--plum), var(--violet) 70%, var(--orchid));
+    box-shadow: inset 0 -2px 0 var(--glow);
+    visibility: hidden;
+  }
+
+  /* The script parks the blinds above the frame and shows them; without it they stay hidden. */
+  :global(html:not(.js)) .work-shutter {
+    display: none;
+  }
+
+  .visit-disc {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 4;
+    width: 96px;
+    height: 96px;
+    margin: -48px 0 0 -48px;
+    border-radius: 50%;
+    background: var(--orchid);
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    font-style: italic;
+    font-size: 22px;
+    pointer-events: none;
+    box-shadow: 0 0 40px rgba(142, 5, 194, 0.6);
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  /* ── Smaller screens ── */
+  @media (max-width: 1024px) {
+    .work {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+    }
+
+    .work-title {
+      white-space: normal;
+    }
+
+    .work-frame {
+      order: -1;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      max-height: 34vh;
+      border-radius: 20px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .work {
+      gap: 20px;
+    }
+
+    .work-main {
+      gap: 18px;
+    }
+
+    .work-item {
+      flex-wrap: wrap;
+      column-gap: 12px;
+    }
+
+    .work-title {
+      font-size: clamp(34px, 10vw, 44px);
+      line-height: 1.08;
+    }
+
+    /* The pill drops under its title instead of floating off to the right. */
+    .work-badge {
+      order: 3;
+      margin-left: calc(2ch + 12px);
+      padding: 2px 10px;
+      font-size: 15px;
+    }
+
+    .work-details {
+      padding-left: 0;
+    }
+
+    .work-desc {
+      font-size: 21px;
+    }
+  }
+
+  /* ── Phones in landscape: list and frame side by side ── */
+  @media (orientation: landscape) and (max-height: 540px) {
+    .work {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+      align-content: center;
+    }
+
+    .work-frame {
+      order: 0;
+      aspect-ratio: auto;
+      height: 64vh;
+      max-height: none;
+    }
+
+    .work-title {
+      font-size: clamp(24px, 4vw, 34px);
+      white-space: nowrap;
+    }
+
+    .work-badge {
+      order: 0;
+      margin-left: 0;
+    }
+
+    .work-desc {
+      font-size: 17px;
+    }
+
+    .work-tags {
+      font-size: 17px;
+    }
+  }
+</style>

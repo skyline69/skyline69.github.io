@@ -1,8 +1,7 @@
 ---
-name: "Rust"
-icon: "./rust.svg"
-url: "https://www.rust-lang.org/"
-accent: "#CE422B"
-order: 2
+name: 'Rust'
+icon: './rust.svg'
+url: 'https://www.rust-lang.org/'
+order: 1
 active: true
 ---

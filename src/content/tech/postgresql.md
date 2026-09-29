@@ -1,8 +1,7 @@
 ---
-name: "PostgreSQL"
-icon: "./postgresql.svg"
-url: "https://www.postgresql.org/"
-accent: "#336791"
-order: 9
+name: 'PostgreSQL'
+icon: './postgresql.svg'
+url: 'https://www.postgresql.org/'
+order: 12
 active: true
 ---

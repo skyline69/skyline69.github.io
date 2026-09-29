@@ -1,8 +1,7 @@
 ---
-name: "React"
-icon: "./react.svg"
-url: "https://reactjs.org/"
-accent: "#61DAFB"
-order: 11
+name: 'React'
+icon: './react.svg'
+url: 'https://reactjs.org/'
+order: 9
 active: true
 ---

@@ -4,170 +4,119 @@ Guidelines for AI coding agents working in this repository.
 
 ## Project Overview
 
-Single-page developer portfolio built with Astro (static output). No frameworks (React, Svelte, etc.), no CSS preprocessors, no Tailwind. Pure Astro components with vanilla TypeScript and scoped CSS. One page (`src/pages/index.astro`) with content driven by Astro Content Collections.
+Single-page developer portfolio built with Astro 7 (static output) and vanilla TypeScript. The page is a **stage**: four full-screen scenes (Intro, Work, Stack, Me) shown one at a time. Wheel, swipe, arrow keys and the nav change scenes; the page itself never scrolls. Without JavaScript the scenes stack as a normal scrolling page. Content comes from Astro Content Collections.
+
+Runtime dependencies: `gsap` (core, Observer, SplitText), `ogl` (the intro fire shader, lazy-loaded) and vendored Canvas UI effects. No UI framework, no Tailwind, no CSS preprocessor.
 
 ## Commands
 
 ```bash
-# Package manager: bun
-bun install              # Install dependencies
-bun run dev              # Start dev server
+# Package manager: bun (Node 22.12+ is also required by Astro 7)
+bun install
+bun run dev              # Dev server
 bun run build            # Production build
-bun run preview          # Preview production build
+bun run preview          # Preview the build
 
-# Type checking (no separate lint/test commands exist)
-bun astro check          # Run Astro's type checker — must pass with 0 errors/warnings/hints
-bun astro sync           # Regenerate .astro/ types (run after changing content.config.ts)
+bun run check            # astro check (TypeScript, strictest)
+bun run lint             # oxlint, type-aware, warnings fail
+bun run format           # oxfmt (write)
+bun run format:check     # oxfmt (check only)
+bun test                 # Unit tests in tests/
+bun run verify           # All of the above plus build. Must pass before work counts as done.
+bun astro sync           # Regenerate .astro/ types after changing content.config.ts
 ```
 
-There is no test runner, linter, or formatter configured. `astro check` and `astro build` are the verification gates — both must pass clean before considering work complete.
+CI (`.github/workflows/deploy.yml`) runs `bun run verify` on every push and pull request; deploys only happen when it passes.
 
 ## Project Structure
 
 ```
 src/
-├── pages/index.astro          # Single page, assembles all sections
-├── layouts/Layout.astro       # HTML shell, imports global.css
-├── components/*.astro         # PascalCase Astro components
-├── content.config.ts          # Zod schemas + glob loaders for collections
-├── content/                   # Markdown files (frontmatter-only, no body)
-│   ├── profile/               # Singleton (main.md)
-│   ├── highlights/            # active + order fields
-│   ├── projects/              # active + order fields, has tags
-│   └── tech/                  # active + order fields
-├── lib/                       # camelCase .ts utilities
-│   ├── content.ts             # Per-collection query functions
-│   └── date.ts                # getAge() helper
-└── styles/global.css          # Design tokens, reset, layout primitives
-public/
-├── fonts/fira-code/           # Self-hosted Fira Code woff2 (400, 600, 700)
-├── assets/icons/              # Tech stack SVGs
-├── assets/projects/           # Project screenshot .webp files
-└── favicon.{svg,ico}
+├── pages/index.astro               # Assembles the stage, meta, JSON-LD
+├── pages/sitemap.xml.ts            # One-page sitemap
+├── pages/robots.txt.ts             # robots.txt: Content Signals + AI crawler rules
+├── pages/index.md.ts               # The page as Markdown (for agents)
+├── pages/llms.txt.ts, llms-full.txt.ts
+├── layouts/Layout.astro            # <head>, font preload, OG tags, origin trial meta
+├── components/
+│   ├── SiteHeader.astro, SceneFooter.astro, Stage.astro, Icon.astro
+│   └── scenes/{Intro,Work,Stack,Me}Scene.astro
+├── content.config.ts               # Zod schemas
+├── content/                        # profile, projects, tech, highlights (frontmatter only)
+├── lib/
+│   ├── content.ts                  # Collection queries (astro:content)
+│   ├── stack.ts, seo.ts, date.ts   # Pure logic, unit tested
+│   ├── agents.ts                   # Pure builders for robots.txt, Markdown, llms.txt (tested)
+│   ├── site.ts                     # Title/description + page data shared by page and agent files
+│   ├── stage.ts                    # Client orchestrator: controller + motion + effects
+│   ├── scenes/                     # state.ts (pure), controller.ts, timelines.ts, shatter-transition.ts
+│   ├── motion/                     # intro, reveal, mist, nav, work, stack (GSAP); fire (OGL shader), embers, name-fx
+│   └── effects/                    # detect, mount, scene-effects, liquid, shatter (Canvas UI adapters)
+├── vendor/canvas-ui/               # Canvas UI source, copied unmodified (see below)
+├── scripts/main.ts                 # Client entry
+└── styles/global.css               # @font-face, tokens, reset, shared pieces
+public/fonts/instrument-serif/      # Self-hosted Instrument Serif (regular + italic)
+tests/                              # bun:test suites for the pure lib modules
 ```
 
-## TypeScript Conventions
+Keep logic in `src/lib/*.ts` and keep `.astro` files thin. Oxlint only partly understands `.astro` files, so strict linting only fully covers `.ts`.
 
-This project extends `astro/tsconfigs/strict`. Apply explicit types everywhere.
+## Design Rules
 
-```ts
-// Variables and DOM queries — always annotate
-const el: HTMLElement | null = document.querySelector<HTMLElement>('[data-x]');
-const links: NodeListOf<HTMLAnchorElement> = nav.querySelectorAll<HTMLAnchorElement>('a');
-let ticking: boolean = false;
+- **One font**: Instrument Serif, self-hosted. No monospace, no second family, no Google Fonts.
+- **No emojis** anywhere. Arrows and icons are inline SVG (`Icon.astro`).
+- **No em dashes** and no "·" separators in visible copy.
+- **Palette** (tokens in `global.css`): `--void #000`, `--plum #3E065F`, `--violet #700B97`, `--orchid #8E05C2` for surfaces, borders and glows. Text uses `--ink`, `--haze`, `--glow`, `--dim`, which were chosen for contrast on black. `--orchid` is not a text colour on black.
+- Rounded shapes, glows and GSAP motion are allowed. Every animation needs a reduced-motion path (usually a crossfade or no motion).
+- Astro 7 strips whitespace between elements with JSX rules. When text and an element sit on separate lines and need a space, write `{' '}`.
 
-// Functions — explicit parameter and return types
-function getAge(birthDate: string): number { ... }
-function initNav(): void { ... }
-(entries: IntersectionObserverEntry[]): void => { ... }
+## TypeScript and Lint
 
-// Component props — use `interface Props`
-interface Props { text: string; speed?: number; }
-const { text, speed = 70 } = Astro.props;
-```
+- `tsconfig` extends `astro/tsconfigs/strictest` (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, ...).
+- `oxlint.config.ts`: correctness, suspicious, perf and pedantic categories as errors, type-aware via `oxlint-tsgolint`. Notable rules: explicit return types, `import type`, no `any`, no non-null assertions, strict boolean expressions, no floating promises, functions up to 80 lines.
+- Annotate variables and parameters explicitly, following the existing code.
+- **No `try/catch`**: use guard clauses. Handle promise failure with `.then(ok, fail)`.
+- Style (enforced by oxfmt): single quotes, semicolons, trailing commas, width 100.
+- Comments: `// ── Section Name ──` separators; JSDoc on exported functions and at the top of component frontmatter.
 
-Use `interface` for local data structures. Use type guards (`el is HTMLElement`) for filter predicates. Non-null assertions (`!`) are acceptable only after a preceding null check in the same scope.
+## Client Script Pattern
 
-## Code Style
+- One entry (`scripts/main.ts`) calls `initStage()`, which guards against double init with `data-stage-init`.
+- Scene elements carry `data-scene="<id>"`; hidden scenes get `inert`. Each scene has one `[data-scene-focus]` heading that receives focus on change.
+- Entrance hooks: `[data-reveal]` (rise), `[data-reveal-words]` (word stagger), `[data-reveal-pop]` (pop from centre).
+- Capabilities come from `lib/effects/detect.ts`. Check `reducedMotion` and `finePointer` before adding motion or cursor effects.
 
-- **Single quotes**, **semicolons**, **trailing commas** in multi-line structures
-- **No `try/catch`** — use guard clauses with early returns (`if (!el) return;`)
-- **No third-party runtime deps** — vanilla TypeScript only
-- **Comments**: `// ── Section Name ──` with box-drawing characters for visual separators
-- **JSDoc** on exported functions and at the top of component frontmatter
+## Agent Access
 
-## File Naming
+The site is built for crawlers and AI agents as well as people. All agent files are generated at build time from the content collections, so they never drift from the page.
 
-| Location | Convention | Example |
-|---|---|---|
-| `src/components/` | PascalCase `.astro` | `SectionTitle.astro` |
-| `src/layouts/` | PascalCase `.astro` | `Layout.astro` |
-| `src/pages/` | kebab-case `.astro` | `index.astro` |
-| `src/lib/` | camelCase `.ts` | `content.ts` |
-| `src/content/` | kebab-case `.md` | `balatro-mod-manager.md` |
-| `public/assets/` | kebab-case | `neo-lolcat.webp` |
+- `robots.txt` (`lib/agents.ts` `buildRobotsTxt`): Cloudflare's Content Signals Policy text, `Content-Signal: search=yes, ai-input=yes, ai-train=yes` in every group, all AI crawlers in `AI_CRAWLERS` explicitly allowed, sitemap link. Change the signals in `pages/robots.txt.ts`.
+- `/index.md`: the whole page as Markdown with YAML front matter. `/llms.txt` is the llmstxt.org summary, `/llms-full.txt` the Markdown body.
+- `<head>` links the Markdown and llms.txt as `rel="alternate"`. JSON-LD is a WebSite + ProfilePage + Person + projects graph (`lib/seo.ts`).
+- GitHub Pages cannot set headers. Markdown negotiation (`Accept: text/markdown` on `/` served from `/index.md`), the `Link` response header and `Vary: Accept` come from Cloudflare Transform Rules on the `dasguney.com` zone, not from this repo. Cloudflare's managed robots.txt must stay off, or it prepends its own signals.
+- Visible-copy rules (no em dashes, first name only) apply to these files too.
 
-## Astro Component Structure
+## Canvas UI
 
-Sections always appear in this order: (1) frontmatter with imports, Props interface, data fetching; (2) HTML template; (3) scoped `<style>`; (4) client-side `<script>` (only when needed).
-
-```astro
----
-// 1. Imports (framework first, then local)
-import { getCollection } from 'astro:content';
-import SectionTitle from './SectionTitle.astro';
-
-// 2. Props interface (if component accepts props)
-interface Props { text: string; }
-const { text } = Astro.props;
-
-// 3. Data fetching / server-side logic
-const items = await getActiveProjects();
----
-
-<!-- 4. HTML template -->
-<section class="section" id="projects">
-  <div class="container">...</div>
-</section>
-
-<!-- 5. Scoped <style> -->
-<style>
-  .section { ... }
-</style>
-
-<!-- 6. Client-side <script> (only when needed) -->
-<script>
-  function initFeature(): void { ... }
-  initFeature();
-  document.addEventListener('astro:after-swap', initFeature);
-</script>
-```
-
-## Client-Side Script Pattern
-
-Every `<script>` block must: (1) wrap logic in a named `init*` function with `: void` return type; (2) call it immediately at module level; (3) register for view transitions: `document.addEventListener('astro:after-swap', initFn)`; (4) check `prefers-reduced-motion` and bail early if animations should be disabled; (5) guard against re-initialization using `data-*` attributes when applicable.
+- Vendored under `src/vendor/canvas-ui/` (MIT + Commons Clause, see `LICENSE.md`). Files are unmodified apart from a `// @ts-nocheck` first line; oxlint and oxfmt ignore the folder.
+- Only `lib/effects/*` may import vendor code, and only through dynamic `import()` so browsers without HTML-in-Canvas never download it.
+- In use: Shatter (scene transitions) and Liquid (Work image frame). Every effect has a GSAP or CSS fallback that must look finished on its own.
+- Effects need the Chrome HTML-in-Canvas origin trial. The token comes from the `ORIGIN_TRIAL_TOKEN` env var (a GitHub repository variable in CI); when unset, no meta tag is emitted.
 
 ## Content Collections
 
-### Schema pattern
+All collections use the `glob` loader and frontmatter only. Filterable collections have `active` and `order`; queries in `lib/content.ts` filter by `active` and sort by `order`.
 
-All collections use `glob` loader. Filterable collections include `active: z.boolean().default(true)` and `order: z.number()`.
+- **projects**: `visual: screenshot | icon`, `status: active | archived`, optional `note` and `siteUrl`. `tags` must match tech names exactly: the Stack scene links tools to projects through them.
+- **tech**: `name`, `icon` (SVG next to the file), `url`.
+- **highlights**: cards in the Me scene, optional italic `accent`.
+- **profile**: singleton; `summary` supports `{age}`.
 
-### Query pattern (src/lib/content.ts)
+## File Naming
 
-One exported async function per collection. Filter by `active !== false`, sort by `order` ascending. `getProfile()` is a singleton — returns `entries[0]` with no filter.
-
-To add content, create a `.md` file in the appropriate `src/content/` subdirectory with YAML frontmatter matching the Zod schema. Set `active: true` and choose an `order` number. No markdown body is used — all data lives in frontmatter.
-
-## CSS Guidelines
-
-### Design tokens — always use variables, never raw colors
-
-```
---bg: #3C3633    --bg-alt: #332F2D    --panel: #747264
---accent: #E0CCBE   --highlight: #C9A87C   --dim: #8A8477   --text: #EEEDEB
---font   --max-width   --gap   --section-gap   --radius (always 0)
-```
-
-### Patterns
-
-- Subtle borders: `color-mix(in srgb, var(--accent) 12%, transparent)`
-- No `border-radius` — sharp corners everywhere (`--radius: 0`)
-- No `box-shadow`, no `transition`, no `transform` for hover states
-- Hover effects: underlines and color changes only
-- Responsive breakpoints: `768px` (primary), `480px` (small mobile, nav only)
-- `prefers-reduced-motion: reduce` media query for every animation
-- BEM-like flat naming: `.component-element`, `.component--modifier`
-- `font-variant-numeric: tabular-nums` on all number displays
-
-### Layout
-
-Page uses a `.block-grid` (2-column CSS Grid with `align-items: start`) for content sections. Hero and footer are outside the grid. On mobile, grid collapses to single column.
-
-## Accessibility
-
-- `aria-hidden="true"` on decorative elements (numbers, arrows, background effects)
-- `aria-label` on interactive elements without visible text (e.g., scroll-down chevron)
-- `loading="lazy"` on below-fold images
-- Semantic HTML: `<nav>`, `<main>`, `<section>`, `<footer>`, `<aside>`
-- All animations respect `prefers-reduced-motion`
+| Location          | Convention           | Example                  |
+| ----------------- | -------------------- | ------------------------ |
+| `src/components/` | PascalCase `.astro`  | `SceneFooter.astro`      |
+| `src/pages/`      | kebab-case           | `index.astro`            |
+| `src/lib/`        | kebab or camel `.ts` | `scene-effects.ts`       |
+| `src/content/`    | kebab-case `.md`     | `balatro-mod-manager.md` |

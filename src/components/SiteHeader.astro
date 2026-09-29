@@ -1,0 +1,170 @@
+---
+/**
+ * Fixed header: name, scene nav, scene counter and GitHub link.
+ * The controller keeps `aria-current` and the counter in sync.
+ */
+import Icon from './Icon.astro';
+import { SCENE_IDS, SCENE_LABELS, formatCounter, type SceneId } from '../lib/scenes/state';
+
+interface Props {
+  name: string;
+  githubUrl: string;
+}
+
+const { name, githubUrl }: Props = Astro.props;
+---
+
+<header class="site-header">
+  <a class="brand" href="#intro">{name}</a>
+  <nav class="nav" aria-label="Scenes">
+    <ul>
+      {
+        SCENE_IDS.map((id: SceneId) => (
+          <li>
+            <a class="nav-link" href={`#${id}`} data-nav={id} aria-current={id === 'intro' ? 'true' : undefined}>
+              {SCENE_LABELS[id]}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <span class="nav-indicator" data-nav-indicator aria-hidden="true"></span>
+  </nav>
+  <div class="header-end">
+    <span class="counter" data-counter aria-hidden="true">{formatCounter(0, SCENE_IDS.length)}</span>
+    <a class="header-github" href={githubUrl}>GitHub<Icon name="arrow-up-right" size={14} /></a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 20;
+    height: calc(var(--header-h) + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+    padding-left: calc(var(--gutter) + env(safe-area-inset-left));
+    padding-right: calc(var(--gutter) + env(safe-area-inset-right));
+    isolation: isolate;
+  }
+
+  /* Blurred, darkened backdrop that fades out at the bottom, so scrolled scene content
+     slides under the nav instead of colliding with it. */
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -24px;
+    z-index: -1;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 55%, rgba(0, 0, 0, 0));
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    pointer-events: none;
+  }
+
+  .brand {
+    justify-self: start;
+    color: var(--ink);
+    font-size: clamp(19px, 1.55vw, 22px);
+  }
+
+  .brand:hover {
+    color: var(--ink);
+  }
+
+  .nav {
+    position: relative;
+  }
+
+  .nav ul {
+    display: flex;
+    gap: 4px;
+  }
+
+  /* One shared underline, moved by the script. Hidden until it is measured. */
+  .nav-indicator {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--orchid);
+    box-shadow: 0 0 10px rgba(142, 5, 194, 0.9);
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .nav-link {
+    display: block;
+    padding: 12px clamp(8px, 1.1vw, 16px);
+    color: var(--haze);
+    font-size: var(--text-base);
+    border-bottom: 1px solid transparent;
+    transition: color 0.45s ease;
+  }
+
+  .nav-link:hover {
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .nav-link[aria-current='true'] {
+    color: var(--ink);
+  }
+
+  /* Without the script the underline sits on the tab itself. */
+  :global(html:not(.js)) .nav-link[aria-current='true'] {
+    border-bottom-color: var(--orchid);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-link {
+      transition: none;
+    }
+  }
+
+  .header-end {
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-size: var(--text-base);
+  }
+
+  .counter {
+    color: var(--haze);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .header-github {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  @media (max-width: 768px) {
+    .site-header {
+      grid-template-columns: auto 1fr;
+    }
+
+    .nav {
+      justify-self: end;
+    }
+
+    .header-end {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .nav-link {
+      padding: 12px 7px;
+    }
+  }
+</style>

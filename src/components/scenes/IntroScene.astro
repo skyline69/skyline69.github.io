@@ -1,0 +1,292 @@
+---
+/**
+ * Scene 01: the name, the one-line pitch and the way in.
+ */
+import Icon from '../Icon.astro';
+
+interface Props {
+  name: string;
+  headline: string;
+  headlineAccent: string;
+  intro: string;
+  githubUrl: string;
+}
+
+const { name, headline, headlineAccent, intro, githubUrl }: Props = Astro.props;
+---
+
+<section id="intro" class="scene scene--intro" data-scene="intro" aria-labelledby="intro-title">
+  <div class="scene-body intro">
+    <div class="intro-name-area">
+      <div class="intro-name-box">
+        <div class="name-fire" data-name-fire aria-hidden="true"></div>
+        <h1 id="intro-title" class="intro-name name-type" data-intro-name data-intro-anim data-scene-focus tabindex="-1">
+          {name}
+        </h1>
+        <canvas class="name-embers" data-name-embers aria-hidden="true"></canvas>
+      </div>
+    </div>
+
+    <div class="intro-copy">
+      <p class="intro-headline" data-intro-headline data-intro-anim>
+        {headline} <em>{headlineAccent}</em>
+      </p>
+      <p class="intro-text" data-reveal>{intro}</p>
+      <div class="intro-actions" data-reveal>
+        <a class="pill-button" href="#work">See the work<Icon name="arrow-right" /></a>
+        <a class="pill-button pill-button--ghost" href={githubUrl}>GitHub</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="intro-footer" data-reveal>
+    <p class="rail-hint">
+      <span class="hint-fine">Scroll</span>
+      <Icon name="arrow-left" />
+      <Icon name="arrow-right" />
+    </p>
+  </div>
+</section>
+
+<style>
+  .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(24px, 4vw, 64px);
+  }
+
+  /* ── Name ── */
+  .name-type {
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(150px, 29vw, 420px);
+    line-height: 0.85;
+    letter-spacing: -0.024em;
+    white-space: nowrap;
+  }
+
+  .intro-name-area {
+    position: relative;
+    height: calc(clamp(150px, 29vw, 420px) * 0.98);
+    margin-left: -0.5vw;
+  }
+
+  .intro-name-box {
+    position: relative;
+    height: 100%;
+  }
+
+  /* ── Fire colours: gold, pink, lavender and orchid rolling upward through the letters ── */
+  .intro-name,
+  .intro-name :global(.intro-char) {
+    background-image: linear-gradient(
+      to top,
+      #8e05c2 0%,
+      #c77dff 20%,
+      #ff8fc8 38%,
+      #ffe3a3 50%,
+      #ff8fc8 62%,
+      #c77dff 80%,
+      #8e05c2 100%
+    );
+    background-size: 100% 2em;
+    background-repeat: repeat-y;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: name-fire-roll 6s linear infinite;
+  }
+
+  .intro-name {
+    position: relative;
+    z-index: 1;
+    width: fit-content;
+    outline: none;
+    filter: drop-shadow(0 0 26px rgba(142, 5, 194, 0.55));
+  }
+
+  /* Italic glyphs lean past their boxes; the gradient only paints inside the box, so widen it. */
+  .intro-name,
+  .intro-name :global(.intro-char) {
+    padding: 0 0.28em;
+    margin: 0 -0.28em;
+  }
+
+  /* Once SplitText wraps the letters, each letter paints its own gradient. */
+  .intro-name:has(:global(.intro-char)) {
+    background-image: none;
+  }
+
+  @keyframes name-fire-roll {
+    to {
+      background-position: 0 -2em;
+    }
+  }
+
+  /* ── Fire: WebGL canvas behind the letters, reaching up above them ── */
+  .name-fire {
+    position: absolute;
+    inset: -70% -14% -6% -14%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .name-fire :global(canvas) {
+    display: block;
+  }
+
+  /* Embers rise above the letters. */
+  .name-embers {
+    position: absolute;
+    inset: -45% -12% -5% -12%;
+    width: 124%;
+    height: 150%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Nothing burns off screen, and nothing moves for reduced motion. */
+  :global(html:not(.js)) .name-embers,
+  :global(html:not(.js)) .name-fire {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .name-fire,
+    .name-embers {
+      display: none;
+    }
+
+    .intro-name,
+    .intro-name :global(.intro-char) {
+      animation: none;
+    }
+  }
+
+  /* SplitText masks: grow the clip box so italic overhangs and descenders stay visible. */
+  .intro-name :global(.intro-char-mask) {
+    padding: 0.08em 0.3em 0.14em;
+    margin: -0.08em -0.3em -0.14em;
+  }
+
+  .intro-headline :global(.intro-line-mask) {
+    padding: 0 0.2em 0.16em 0;
+    margin: 0 -0.2em -0.16em 0;
+  }
+
+  :global(html.js) [data-intro-anim] {
+    visibility: hidden;
+    animation: reveal-fallback 0s 2.5s forwards;
+  }
+
+  /* ── Copy ── */
+  .intro-copy {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(18px, 2.2vh, 28px);
+    max-width: 620px;
+  }
+
+  .intro-headline {
+    font-size: clamp(40px, 5vw, 72px);
+    line-height: 0.98;
+  }
+
+  .intro-headline em {
+    color: var(--glow);
+  }
+
+  .intro-text {
+    color: var(--haze);
+    font-size: var(--text-lg);
+    line-height: 1.35;
+  }
+
+  .intro-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 6px;
+  }
+
+  /* ── Rail ── */
+  .intro-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .rail-hint {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 36px;
+    color: var(--haze);
+    font-size: var(--text-sm);
+  }
+
+  :global(html:not(.js)) .rail-hint {
+    display: none;
+  }
+
+  /* Touch screens switch scenes with the nav, so there is nothing to hint at. */
+  @media (hover: none) {
+    .rail-hint {
+      display: none;
+    }
+  }
+
+  /* ── Smaller screens ── */
+  @media (max-width: 1024px) {
+    .intro {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: center;
+    }
+
+    .name-type {
+      font-size: clamp(170px, 52vw, 380px);
+    }
+
+    .intro-name-area {
+      height: calc(clamp(170px, 52vw, 380px) * 0.98);
+      margin-top: clamp(24px, 6vh, 64px);
+    }
+
+    .intro-copy {
+      gap: 16px;
+    }
+
+    .rail-hint {
+      padding-bottom: 8px;
+    }
+  }
+
+  /* ── Phones in landscape: side by side again, sized by height ── */
+  @media (orientation: landscape) and (max-height: 540px) {
+    .intro {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-content: center;
+    }
+
+    .name-type {
+      font-size: min(26vw, 56vh);
+    }
+
+    .intro-name-area {
+      height: calc(min(26vw, 56vh) * 0.98);
+      margin-top: 0;
+    }
+
+    .intro-headline {
+      font-size: clamp(26px, 4.2vw, 40px);
+    }
+
+    .intro-text {
+      font-size: 16px;
+    }
+
+    .rail-hint {
+      padding-bottom: 0;
+    }
+  }
+</style>

@@ -1,239 +1,104 @@
 ---
+/**
+ * The whole site: four scenes on one stage.
+ */
+import type { CollectionEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import Nav from '../components/Nav.astro';
-import Hero from '../components/Hero.astro';
-import About from '../components/About.astro';
-import Highlights from '../components/Highlights.astro';
-import Projects from '../components/Projects.astro';
-import TechStack from '../components/TechStack.astro';
-import SectionDivider from '../components/SectionDivider.astro';
-import { Icon } from 'astro-icon/components';
+import SiteHeader from '../components/SiteHeader.astro';
+import Stage from '../components/Stage.astro';
+import IntroScene from '../components/scenes/IntroScene.astro';
+import WorkScene, { type WorkProject } from '../components/scenes/WorkScene.astro';
+import StackScene from '../components/scenes/StackScene.astro';
+import MeScene, { type MeCard } from '../components/scenes/MeScene.astro';
+import { getActiveHighlights, getActiveProjects, getProfile, getStack } from '../lib/content';
+import { fillAge, getAge } from '../lib/date';
+import { buildJsonLd, serializeJsonLd } from '../lib/seo';
+import { DEFAULT_SITE, siteMeta, type SiteMeta } from '../lib/site';
+import type { StackItem } from '../lib/stack';
+
+const [profileEntry, projectEntries, highlightEntries, stack] = await Promise.all([
+  getProfile(),
+  getActiveProjects(),
+  getActiveHighlights(),
+  getStack(),
+]);
+
+const profile: CollectionEntry<'profile'>['data'] = profileEntry.data;
+const age: number = getAge(profile.birthDate);
+const siteUrl: string = (Astro.site ?? DEFAULT_SITE).href;
+const { title, description }: SiteMeta = siteMeta(profile);
+
+const projects: WorkProject[] = projectEntries.map((entry: CollectionEntry<'projects'>): WorkProject => {
+  const p: CollectionEntry<'projects'>['data'] = entry.data;
+  return {
+    title: p.title,
+    description: p.description,
+    note: p.note,
+    tags: p.tags,
+    archived: p.status === 'archived',
+    href: p.siteUrl ?? p.repoUrl,
+    linkLabel: p.siteUrl === undefined ? 'View on GitHub' : 'Visit the site',
+    repoUrl: p.repoUrl,
+    showRepoLink: p.siteUrl !== undefined,
+    image: p.image,
+    visual: p.visual,
+  };
+});
+
+const cards: MeCard[] = highlightEntries.map(
+  (entry: CollectionEntry<'highlights'>): MeCard => ({
+    title: entry.data.title,
+    body: entry.data.body,
+    accent: entry.data.accent,
+  }),
+);
+
+const jsonLd: string = serializeJsonLd(
+  buildJsonLd(
+    {
+      name: profile.name,
+      handle: profile.handle,
+      siteUrl,
+      githubUrl: profile.githubUrl,
+      description,
+      knowsAbout: stack.map((item: StackItem): string => item.name),
+    },
+    projectEntries.map((entry: CollectionEntry<'projects'>) => ({
+      title: entry.data.title,
+      description: entry.data.description,
+      repoUrl: entry.data.repoUrl,
+      siteUrl: entry.data.siteUrl,
+      languages: entry.data.tags,
+      archived: entry.data.status === 'archived',
+    })),
+  ),
+);
 ---
 
-<Layout>
-  <Nav />
-    <main id="main">
-    <Hero />
-    <div class="block-grid">
-      <!-- Row 1: About | Highlights -->
-      <About />
-      <Highlights />
-      <!-- Divider -->
-      <div class="divider-row">
-        <SectionDivider />
-      </div>
-      <!-- Row 2: TechStack (full-width compact grid) -->
-      <TechStack />
-      <!-- Divider -->
-      <div class="divider-row">
-        <SectionDivider />
-      </div>
-      <!-- Row 3: Projects (full-width horizontal cards) -->
-      <Projects />
-    </div>
-  </main>
-  <footer id="site-footer">
-    <div class="footer-inner container">
-      <span class="footer-handle">
-        <a href="https://github.com/skyline69" target="_blank" rel="noopener noreferrer">@skyline69</a>
-      </span>
-      <span class="footer-copy">&copy; {new Date().getFullYear()} Efe</span>
-      <span class="footer-built">
-        Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a>
-      </span>
-    </div>
-  </footer>
-
-  <!-- Scroll-to-top button (visible only when footer is in view) -->
-  <button
-    type="button"
-    class="scroll-top"
-    id="scroll-top"
-    aria-label="Scroll to top"
-  >
-    <Icon name="lucide:chevron-up" size={18} />
-  </button>
+<Layout title={title} description={description} author={profile.name} jsonLd={jsonLd}>
+  <SiteHeader name={profile.name} githubUrl={profile.githubUrl} />
+  <Stage>
+    <IntroScene
+      name={profile.name}
+      headline={profile.headline}
+      headlineAccent={profile.headlineAccent}
+      intro={profile.intro}
+      githubUrl={profile.githubUrl}
+    />
+    <WorkScene projects={projects} />
+    <StackScene items={stack} />
+    <MeScene
+      name={profile.name}
+      summary={profile.summary.map((text: string): string => fillAge(text, age))}
+      origin={profile.origin}
+      languages={profile.languages}
+      next={profile.next}
+      cards={cards}
+      githubUrl={profile.githubUrl}
+    />
+  </Stage>
 </Layout>
 
-<style>
-  footer {
-    border-top: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
-    padding: 1rem 0;
-    font-size: 0.75rem;
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-
-  .footer-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .footer-handle a {
-    color: var(--highlight);
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .footer-handle a:hover {
-    text-decoration: underline;
-  }
-
-  .footer-handle a:focus-visible {
-    outline: 2px solid var(--highlight);
-    outline-offset: 2px;
-  }
-
-  .footer-copy {
-    color: var(--dim);
-  }
-
-  .footer-built {
-    color: var(--dim);
-  }
-
-  .footer-built a {
-    color: var(--accent);
-    text-decoration: none;
-  }
-
-  .footer-built a:hover {
-    text-decoration: underline;
-  }
-
-  .footer-built a:focus-visible {
-    outline: 2px solid var(--highlight);
-    outline-offset: 2px;
-  }
-
-  /* ── Scroll-to-top button ── */
-
-  .scroll-top {
-    position: fixed;
-    top: 3.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 90;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-    background: color-mix(in srgb, var(--bg-alt) 94%, transparent);
-    color: var(--accent);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 240ms ease, color 160ms ease, border-color 160ms ease;
-  }
-
-  .scroll-top.is-visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .scroll-top:hover {
-    color: var(--highlight);
-    border-color: color-mix(in srgb, var(--highlight) 72%, transparent);
-  }
-
-  .scroll-top:focus-visible {
-    outline: 2px solid var(--highlight);
-    outline-offset: 2px;
-    color: var(--highlight);
-  }
-
-  .scroll-top :global(svg) {
-    width: 18px;
-    height: 18px;
-    display: block;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .scroll-top {
-      transition: none;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .footer-inner {
-      flex-direction: column;
-      gap: 0.5rem;
-      text-align: center;
-    }
-  }
-</style>
-
 <script>
-  function initScrollTop(): void {
-    const btn: HTMLButtonElement | null = document.querySelector<HTMLButtonElement>('#scroll-top');
-    const footer: HTMLElement | null = document.getElementById('site-footer');
-    if (!btn || !footer) return;
-    if (btn.dataset.scrollTopInit === 'true') return;
-    btn.dataset.scrollTopInit = 'true';
-
-    const observer: IntersectionObserver = new IntersectionObserver(
-      (entries: IntersectionObserverEntry[]): void => {
-        const entry: IntersectionObserverEntry | undefined = entries[0];
-        if (!entry) return;
-        if (entry.isIntersecting) {
-          btn.classList.add('is-visible');
-        } else {
-          btn.classList.remove('is-visible');
-        }
-      },
-      { threshold: 0.1 },
-    );
-    observer.observe(footer);
-
-    btn.addEventListener('click', (): void => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-  }
-
-  initScrollTop();
-  document.addEventListener('astro:after-swap', initScrollTop);
-
-  // ── Pause off-screen section animations ──
-
-  /** @description Toggles data-offscreen on sections to pause CSS transform animations */
-  let sectionPauseObserver: IntersectionObserver | null = null;
-
-  function initSectionPause(): void {
-    if (sectionPauseObserver) {
-      sectionPauseObserver.disconnect();
-      sectionPauseObserver = null;
-    }
-
-    const ids: string[] = ['about', 'highlights', 'techstack', 'projects'];
-    const sections: HTMLElement[] = ids
-      .map((id: string): HTMLElement | null => document.getElementById(id))
-      .filter((el: HTMLElement | null): el is HTMLElement => el !== null);
-
-    if (sections.length === 0) return;
-
-    sectionPauseObserver = new IntersectionObserver(
-      (entries: IntersectionObserverEntry[]): void => {
-        for (const entry of entries) {
-          const section: HTMLElement = entry.target as HTMLElement;
-          if (entry.isIntersecting) {
-            section.removeAttribute('data-offscreen');
-          } else {
-            section.setAttribute('data-offscreen', '');
-          }
-        }
-      },
-      { rootMargin: '100px 0px' },
-    );
-
-    for (const section of sections) {
-      sectionPauseObserver.observe(section);
-    }
-  }
-
-  initSectionPause();
-  document.addEventListener('astro:after-swap', initSectionPause);
+  import '../scripts/main';
 </script>
