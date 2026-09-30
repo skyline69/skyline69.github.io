@@ -1,35 +1,9 @@
 import { gsap } from 'gsap';
 import type { Direction, Transition, TransitionRun, TransitionScenes } from './controller';
 import { revealScene } from '../motion/reveal';
+import { FULL, centreOf, clipPathOf, complement, fullFrom, type Region } from './regions';
 
 // ── Scene transitions: GSAP fallbacks that run everywhere ──
-
-/**
- * Visible part of a scene: the band between a slanted left edge and a slanted right edge,
- * as x positions (percent of the scene width) at the top and bottom.
- */
-interface Region {
-  lt: number;
-  lb: number;
-  rt: number;
-  rb: number;
-}
-
-/** Off-screen on both sides, with the same tilt the wipe edges use. */
-const FULL: Readonly<Region> = { lt: -40, lb: -30, rt: 140, rb: 130 };
-
-/**
- * Grow a region off-screen on both sides while each edge keeps its current tilt, so a
- * scene gliding back never straightens its edge mid-way.
- */
-function fullFrom(region: Region): Region {
-  return {
-    lt: FULL.lt,
-    lb: FULL.lt + (region.lb - region.lt),
-    rt: FULL.rt,
-    rb: FULL.rt + (region.rb - region.rt),
-  };
-}
 
 /** Current region of every clipped scene, so an interrupted wipe can hand off exactly. */
 const regions: WeakMap<HTMLElement, Region> = new WeakMap();
@@ -41,25 +15,13 @@ function regionOf(scene: HTMLElement): Region {
   return regions.get(scene) ?? { ...FULL };
 }
 
-function centreOf(region: Region): number {
-  return (region.lt + region.lb + region.rt + region.rb) / 4;
-}
-
 function applyRegion(scene: HTMLElement, region: Region): void {
   regions.set(scene, region);
-  scene.style.clipPath = `polygon(${region.lt}% 0%, ${region.rt}% 0%, ${region.rb}% 100%, ${region.lb}% 100%)`;
+  scene.style.clipPath = clipPathOf(region);
 }
 
-/**
- * Region a leaving scene keeps while `incoming` grows: it is cut back to its side of the
- * incoming edge, so the two never overlap. `onLeft` says which side that is.
- */
-function complement(base: Region, incoming: Region, onLeft: boolean): Region {
-  if (onLeft) {
-    return { ...base, rt: Math.min(base.rt, incoming.lt), rb: Math.min(base.rb, incoming.lb) };
-  }
-  return { ...base, lt: Math.max(base.lt, incoming.rt), lb: Math.max(base.lb, incoming.rb) };
-}
+/** How far the scenes being replaced dim during a wipe. */
+const LEAVING_ALPHA: number = 0.45;
 
 /** Seam height relative to the scene it rides (see `.wipe-seam` in Stage.astro). */
 const SEAM_SPAN: number = 1.24;
@@ -207,7 +169,7 @@ export const wipe: Transition = (scenes: TransitionScenes): TransitionRun => {
     // The old side darkens as it is swept away.
     timeline.to(
       leaving,
-      { autoAlpha: 0.45, duration: 0.9, ease: 'power2.in', overwrite: 'auto' },
+      { autoAlpha: LEAVING_ALPHA, duration: 0.9, ease: 'power2.in', overwrite: 'auto' },
       0,
     );
   }

@@ -53,7 +53,7 @@ src/
 │   ├── site.ts                     # Title/description + page data shared by page and agent files
 │   ├── stage.ts                    # Client orchestrator: controller + motion + effects
 │   ├── lang-menu.ts                # Language menu: outside click, Escape, keeps the scene hash
-│   ├── scenes/                     # state.ts (pure), controller.ts, timelines.ts, shatter-transition.ts
+│   ├── scenes/                     # state.ts, regions.ts (pure), controller.ts, timelines.ts, shatter-transition.ts
 │   ├── motion/                     # intro, reveal, mist, header (nav + counter), work, stack (GSAP); fire (OGL shader), embers, name-fx
 │   └── effects/                    # detect, mount, scene-effects, liquid, shatter (Canvas UI adapters)
 ├── vendor/canvas-ui/               # Canvas UI source, copied unmodified (see below)
