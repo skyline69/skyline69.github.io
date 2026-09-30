@@ -29,6 +29,9 @@ export function withShatter(stage: HTMLElement, fallback: Transition): Transitio
     let cancelled: boolean = false;
     let inner: TransitionRun | null = null;
     let settle: (() => void) | null = null;
+    // The incoming scene is already active, so hide it now: loading the effect takes a
+    // moment, and until the shards cover the page it would show on top of the old scene.
+    gsap.set(to, { autoAlpha: 0 });
 
     const play = async (): Promise<void> => {
       const mounted: Mounted<ShatterInstance> | null = await loadShatter(stage);
@@ -46,7 +49,6 @@ export function withShatter(stage: HTMLElement, fallback: Transition): Transitio
       const apply = (): void => {
         mounted.instance.setOptions({ baseStrength: state.strength });
       };
-      gsap.set(to, { autoAlpha: 0 });
       const timeline: gsap.core.Timeline = gsap
         .timeline()
         .to(state, { strength: 1, duration: 0.55, ease: 'power3.in', onUpdate: apply })

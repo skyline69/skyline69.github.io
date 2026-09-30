@@ -166,10 +166,17 @@ export const wipe: Transition = (scenes: TransitionScenes): TransitionRun => {
     timeline.to(to, { autoAlpha: 1, duration: 0.4, ease: 'power2.out', overwrite: 'auto' }, 0);
   }
   if (leaving.length > 0) {
-    // The old side darkens as it is swept away.
+    // The old side darkens as it is swept away. Never brighten: a scene an interrupted
+    // transition had already hidden (Shatter swaps scenes at full cover) stays hidden.
     timeline.to(
       leaving,
-      { autoAlpha: LEAVING_ALPHA, duration: 0.9, ease: 'power2.in', overwrite: 'auto' },
+      {
+        autoAlpha: (_index: number, scene: HTMLElement): number =>
+          Math.min(LEAVING_ALPHA, Number(gsap.getProperty(scene, 'autoAlpha'))),
+        duration: 0.9,
+        ease: 'power2.in',
+        overwrite: 'auto',
+      },
       0,
     );
   }
