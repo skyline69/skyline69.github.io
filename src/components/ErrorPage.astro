@@ -152,6 +152,8 @@ const copy: Record<string, LocaleCopy> = Object.fromEntries(
     height: calc(var(--header-h) + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) calc(var(--gutter) + env(safe-area-inset-right)) 0
       calc(var(--gutter) + env(safe-area-inset-left));
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .error-brand {
@@ -175,6 +177,8 @@ const copy: Record<string, LocaleCopy> = Object.fromEntries(
   /* ── The code: same rolling fire colours as the intro name ── */
   .error-code-box {
     position: relative;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .error-code {

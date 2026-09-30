@@ -55,6 +55,8 @@ const t: Messages = MESSAGES[locale];
     padding-left: calc(var(--gutter) + env(safe-area-inset-left));
     padding-right: calc(var(--gutter) + env(safe-area-inset-right));
     isolation: isolate;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Blurred, darkened backdrop that fades out at the bottom, so scrolled scene content

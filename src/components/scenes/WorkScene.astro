@@ -143,6 +143,8 @@ const pad = (n: number): string => String(n).padStart(2, '0');
     align-items: baseline;
     gap: clamp(12px, 1.4vw, 20px);
     color: var(--dim);
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .work-item:hover {
@@ -239,12 +241,22 @@ const pad = (n: number): string => String(n).padStart(2, '0');
     overflow: hidden;
     border: 1px solid var(--plum);
     background: var(--panel);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
 
   .work-frame-inner {
     position: relative;
     width: 100%;
     height: 100%;
+  }
+
+  /* The image never takes the pointer: right-click and long-press land on the frame's
+     link, so the browser offers the link menu instead of "Open image" or "Save image as". */
+  .work-figure :global(img) {
+    pointer-events: none;
+    -webkit-user-drag: none;
   }
 
   .work-figure {
@@ -317,6 +329,8 @@ const pad = (n: number): string => String(n).padStart(2, '0');
     visibility: hidden;
     opacity: 0;
     transform: scale(0.4);
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* ── Smaller screens ── */

@@ -157,6 +157,8 @@ a:hover {
 
 /* ── Shared pieces ── */
 .pill-button {
+  -webkit-user-select: none;
+  user-select: none;
   display: inline-flex;
   align-items: center;
   gap: 10px;

@@ -170,6 +170,9 @@ function cellStyle(i: number): string {
     background: var(--plum);
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     transform-style: preserve-3d;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
 
   .hex-face {
@@ -192,7 +195,11 @@ function cellStyle(i: number): string {
     height: 36%;
   }
 
+  /* The logos never take the pointer: right-click and long-press land on the tile, so the
+     browser offers no "Open image" or "Save image as", and nothing can be dragged out. */
   .hex-logo :global(img) {
+    pointer-events: none;
+    -webkit-user-drag: none;
     position: absolute;
     inset: 0;
     width: 100%;
