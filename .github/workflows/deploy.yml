@@ -16,11 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 22
+          # Same Node as the build job (withastro/action@v6 defaults to 24).
+          node-version: 24
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
       - name: Install
@@ -38,9 +39,9 @@ jobs:
       ORIGIN_TRIAL_TOKEN: ${{ vars.ORIGIN_TRIAL_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Install, build, and upload
-        uses: withastro/action@v5
+        uses: withastro/action@v6
         with:
           package-manager: bun@latest
 
@@ -54,4 +55,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
