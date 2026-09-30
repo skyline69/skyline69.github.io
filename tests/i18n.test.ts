@@ -1,13 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import {
-  ERROR_CODES,
   LOCALES,
   MESSAGES,
   isLocale,
   localePath,
   preferredLocale,
   textIn,
-  type ErrorCode,
   type Locale,
   type Messages,
 } from '../src/lib/i18n';
@@ -86,10 +84,8 @@ function allStrings(m: Messages): string[] {
     m.imageAlt('X', 'icon'),
     m.imageAlt('X', 'screenshot'),
     m.usedIn('X'),
-    ...ERROR_CODES.flatMap((code: ErrorCode): string[] => [
-      m.errors[code].title,
-      m.errors[code].body,
-    ]),
+    m.notFound.title,
+    m.notFound.body,
   ];
 }
 

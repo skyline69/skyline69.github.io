@@ -67,15 +67,7 @@ export function textIn<T>(
 
 // ── Interface copy ──
 
-/** Error pages: the 404 GitHub Pages serves, and 5xx pages for Cloudflare to serve. */
-export const ERROR_CODES = [404, 500, 502, 503, 504] as const;
-
-export type ErrorCode = (typeof ERROR_CODES)[number];
-
-/** Server errors, which only Cloudflare can show (GitHub Pages never answers with a 5xx). */
-export const SERVER_ERROR_CODES: readonly Exclude<ErrorCode, 404>[] = [500, 502, 503, 504];
-
-/** Headline and one line of explanation for an error page. */
+/** Headline and one line of explanation for the 404 page. */
 export interface ErrorCopy {
   title: string;
   body: string;
@@ -106,9 +98,8 @@ export interface Messages {
   usedIn: (list: string) => string;
   unused: string;
   tagline: string;
-  errors: Readonly<Record<ErrorCode, ErrorCopy>>;
+  notFound: ErrorCopy;
   backHome: string;
-  tryAgain: string;
   langHint: string;
   langHintAction: string;
   dismiss: string;
@@ -139,24 +130,8 @@ const EN: Messages = {
   usedIn: (list: string): string => `Used in ${list}.`,
   unused: 'In the toolbox, not in a listed project yet.',
   tagline: 'builds big, fast software, mostly in Rust.',
-  errors: {
-    404: { title: 'Page not found', body: 'This page went up in smoke.' },
-    500: {
-      title: 'Something broke',
-      body: 'Something went wrong on my end. Try again in a moment.',
-    },
-    502: {
-      title: 'Bad gateway',
-      body: 'The host behind this site sent back something broken. Try again in a moment.',
-    },
-    503: { title: 'Back soon', body: 'The site is down for a moment. Try again shortly.' },
-    504: {
-      title: 'Timed out',
-      body: 'The host behind this site took too long to answer. Try again in a moment.',
-    },
-  },
+  notFound: { title: 'Page not found', body: 'This page went up in smoke.' },
   backHome: 'Back to the start',
-  tryAgain: 'Try again',
   langHint: 'This page is also in English.',
   langHintAction: 'Read in English',
   dismiss: 'Dismiss',
@@ -187,27 +162,8 @@ const DE: Messages = {
   usedIn: (list: string): string => `Verwendet in ${list}.`,
   unused: 'Im Werkzeugkasten, noch in keinem gelisteten Projekt.',
   tagline: 'baut große, schnelle Software, meist in Rust.',
-  errors: {
-    404: { title: 'Seite nicht gefunden', body: 'Diese Seite ist in Rauch aufgegangen.' },
-    500: {
-      title: 'Etwas ist kaputt',
-      body: 'Bei mir ist etwas schiefgelaufen. Versuch es gleich noch einmal.',
-    },
-    502: {
-      title: 'Fehlerhaftes Gateway',
-      body: 'Der Host hinter dieser Seite hat eine fehlerhafte Antwort geschickt. Versuch es gleich noch einmal.',
-    },
-    503: {
-      title: 'Gleich wieder da',
-      body: 'Die Seite ist kurz nicht erreichbar. Versuch es gleich noch einmal.',
-    },
-    504: {
-      title: 'Zeitüberschreitung',
-      body: 'Der Host hinter dieser Seite hat zu lange gebraucht. Versuch es gleich noch einmal.',
-    },
-  },
+  notFound: { title: 'Seite nicht gefunden', body: 'Diese Seite ist in Rauch aufgegangen.' },
   backHome: 'Zurück zum Anfang',
-  tryAgain: 'Nochmal versuchen',
   langHint: 'Diese Seite gibt es auch auf Deutsch.',
   langHintAction: 'Auf Deutsch lesen',
   dismiss: 'Schließen',
@@ -238,27 +194,8 @@ const TR: Messages = {
   usedIn: (list: string): string => `Kullanıldığı projeler: ${list}.`,
   unused: 'Araç kutusunda, henüz listelenen bir projede değil.',
   tagline: 'büyük ve hızlı yazılımlar geliştiriyor, çoğunlukla Rust ile.',
-  errors: {
-    404: { title: 'Sayfa bulunamadı', body: 'Bu sayfa duman olup uçtu.' },
-    500: {
-      title: 'Bir şeyler bozuldu',
-      body: 'Benim tarafımda bir sorun oluştu. Birazdan tekrar dene.',
-    },
-    502: {
-      title: 'Hatalı ağ geçidi',
-      body: 'Bu sitenin arkasındaki sunucu bozuk bir yanıt gönderdi. Birazdan tekrar dene.',
-    },
-    503: {
-      title: 'Birazdan döneceğim',
-      body: 'Site kısa bir süreliğine erişilemiyor. Birazdan tekrar dene.',
-    },
-    504: {
-      title: 'Zaman aşımı',
-      body: 'Bu sitenin arkasındaki sunucu yanıt vermekte çok gecikti. Birazdan tekrar dene.',
-    },
-  },
+  notFound: { title: 'Sayfa bulunamadı', body: 'Bu sayfa duman olup uçtu.' },
   backHome: 'Başa dön',
-  tryAgain: 'Tekrar dene',
   langHint: 'Bu sayfa Türkçe olarak da var.',
   langHintAction: 'Türkçe oku',
   dismiss: 'Kapat',

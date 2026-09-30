@@ -36,7 +36,6 @@ CI (`.github/workflows/deploy.yml`) runs `bun run verify` on every push and pull
 src/
 ├── pages/[...lang].astro           # Assembles the stage, meta, JSON-LD, once per locale
 ├── pages/404.astro                 # Not found (GitHub Pages serves it for every missing path)
-├── pages/errors/[code].astro       # 500, 502, 503, 504 for Cloudflare to serve
 ├── pages/sitemap.xml.ts            # One URL per locale, with hreflang alternates
 ├── pages/robots.txt.ts             # robots.txt: Content Signals + AI crawler rules
 ├── pages/index.md.ts               # The page as Markdown (for agents)
@@ -44,7 +43,6 @@ src/
 ├── layouts/Layout.astro            # <head>, font preload, OG tags, origin trial meta
 ├── components/
 │   ├── SiteHeader.astro, SceneFooter.astro, Stage.astro, Icon.astro, LanguageSwitcher.astro, LanguageHint.astro
-│   ├── ErrorPage.astro             # Shared error page (404 and 5xx)
 │   └── scenes/{Intro,Work,Stack,Me}Scene.astro
 ├── content.config.ts               # Zod schemas
 ├── content/                        # profile, projects, tech, highlights (frontmatter only)
@@ -122,13 +120,12 @@ The site is built for crawlers and AI agents as well as people. All agent files 
 - Agent files (`index.md`, `llms.txt`, `llms-full.txt`) and the JSON-LD `WebSite` node stay English only.
 - The copy rules (no em dashes, no "·", no emojis) apply to every language; `tests/i18n.test.ts` checks `MESSAGES`.
 
-## Error Pages
+## 404 Page
 
-- `ErrorPage.astro` renders every error page: the status code huge and italic, a headline, one line, and buttons. Copy lives in `MESSAGES[locale].errors`.
-- One file serves every path, so the HTML is English and an inline script swaps in German or Turkish copy (and the locale home link) before first paint when the path starts with `/de/` or `/tr/`.
-- `404.html` is live on GitHub Pages. Its code burns with the intro fire and embers (`scripts/error.ts`).
-- GitHub Pages never answers with a 5xx. `/errors/500/` to `/errors/504/` exist for Cloudflare to serve (Error Pages, or Custom Error Rules/Assets on paid plans). Cloudflare fetches them once and inlines what they reference, so they must stay self-contained: inline CSS, no bundled script.
-- Error pages are `noindex` and not in the sitemap.
+- `pages/404.astro`: the code huge, italic and burning (intro fire and embers via `scripts/error.ts`), a headline, one line and a way back. Copy lives in `MESSAGES[locale].notFound`.
+- GitHub Pages serves one `404.html` for every missing path, so the HTML is English and an inline script swaps in German or Turkish copy (and the locale home link) before first paint when the path starts with `/de/` or `/tr/`.
+- It is `noindex` and not in the sitemap.
+- There are no 5xx pages: GitHub Pages never answers with a 5xx, and Cloudflare only serves custom 5xx pages on paid plans.
 
 ## Content Collections
 

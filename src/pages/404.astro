@@ -1,8 +1,279 @@
 ---
 /**
- * Not found. GitHub Pages serves this for every missing path, in every locale.
+ * Not found. GitHub Pages serves this one file for every missing path, in every locale: the
+ * HTML is English and a small inline script switches to German or Turkish before the first
+ * paint when the path starts with /de/ or /tr/. The 404 burns like the intro name.
  */
-import ErrorPage from '../components/ErrorPage.astro';
+import '../styles/global.css';
+import Icon from '../components/Icon.astro';
+import { getProfile } from '../lib/content';
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  MESSAGES,
+  localePath,
+  type Locale,
+  type Messages,
+} from '../lib/i18n';
+
+/** Copy the inline script swaps in, keyed by locale. */
+interface LocaleCopy {
+  title: string;
+  body: string;
+  home: string;
+  href: string;
+}
+
+const t: Messages = MESSAGES[DEFAULT_LOCALE];
+const name: string = (await getProfile()).data.name;
+const copy: Record<string, LocaleCopy> = Object.fromEntries(
+  LOCALES.filter((l: Locale): boolean => l !== DEFAULT_LOCALE).map(
+    (l: Locale): [string, LocaleCopy] => [
+      l,
+      {
+        title: MESSAGES[l].notFound.title,
+        body: MESSAGES[l].notFound.body,
+        home: MESSAGES[l].backHome,
+        href: localePath(l),
+      },
+    ],
+  ),
+);
 ---
 
-<ErrorPage code={404} burn />
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{`${t.notFound.title} (404)`}</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="preload"
+      href="/fonts/instrument-serif/InstrumentSerif-Italic.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body>
+    <div class="error-mist" aria-hidden="true"></div>
+    <header class="error-header">
+      <a class="error-brand" href="/" data-home>{name}</a>
+    </header>
+
+    <main class="error" id="main">
+      <div class="error-code-box" data-burn>
+        <div class="error-fire" data-name-fire aria-hidden="true"></div>
+        <p class="error-code" data-intro-name aria-hidden="true">404</p>
+        <canvas class="error-embers" data-name-embers aria-hidden="true"></canvas>
+      </div>
+      <h1 class="error-title" data-copy="title">{t.notFound.title}</h1>
+      <p class="error-body" data-copy="body">{t.notFound.body}</p>
+      <div class="error-actions">
+        <a class="pill-button" href="/" data-home>
+          <span data-copy="home">{t.backHome}</span>
+          <Icon name="arrow-right" />
+        </a>
+      </div>
+    </main>
+
+    <script is:inline define:vars={{ copy }}>
+      const locale = location.pathname.split('/')[1] ?? '';
+      const text = copy[locale];
+      if (text) {
+        document.documentElement.lang = locale;
+        document.title = `${text.title} (404)`;
+        document.querySelectorAll('[data-copy]').forEach((el) => {
+          el.textContent = text[el.dataset.copy];
+        });
+        document.querySelectorAll('[data-home]').forEach((link) => {
+          link.setAttribute('href', text.href);
+        });
+      }
+    </script>
+    <script>
+      import '../scripts/error';
+    </script>
+  </body>
+</html>
+
+<style>
+  body {
+    min-height: 100svh;
+  }
+
+  /* The stage's mist, fixed behind everything. */
+  .error-mist {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60vmax 60vmax at 0% 90%, rgba(62, 6, 95, 0.85), transparent 70%),
+      radial-gradient(50vmax 50vmax at 100% 0%, rgba(112, 11, 151, 0.4), transparent 70%),
+      radial-gradient(40vmax 40vmax at 90% 100%, rgba(142, 5, 194, 0.25), transparent 70%);
+  }
+
+  .error-header {
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    align-items: center;
+    height: calc(var(--header-h) + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) calc(var(--gutter) + env(safe-area-inset-right)) 0
+      calc(var(--gutter) + env(safe-area-inset-left));
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .error-brand {
+    color: var(--ink);
+    font-size: clamp(19px, 1.55vw, 22px);
+  }
+
+  .error-brand:hover {
+    color: var(--ink);
+  }
+
+  .error {
+    min-height: 100svh;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    padding: calc(var(--header-h) + 24px) var(--gutter) 48px;
+    text-align: center;
+  }
+
+  /* ── The code: same rolling fire colours as the intro name ── */
+  .error-code-box {
+    position: relative;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .error-code {
+    position: relative;
+    z-index: 1;
+    padding: 0 0.28em;
+    font-style: italic;
+    font-size: clamp(140px, 30vw, 380px);
+    line-height: 0.85;
+    letter-spacing: -0.024em;
+    white-space: nowrap;
+    background-image: linear-gradient(
+      to top,
+      #8e05c2 0%,
+      #c77dff 20%,
+      #ff8fc8 38%,
+      #ffe3a3 50%,
+      #ff8fc8 62%,
+      #c77dff 80%,
+      #8e05c2 100%
+    );
+    background-size: 100% 2em;
+    background-repeat: repeat-y;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 26px rgba(142, 5, 194, 0.55));
+    animation: error-roll 6s linear infinite;
+  }
+
+  @keyframes error-roll {
+    to {
+      background-position: 0 -2em;
+    }
+  }
+
+  .error-fire {
+    position: absolute;
+    inset: -70% -8% -6% -8%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .error-fire :global(canvas) {
+    display: block;
+  }
+
+  .error-embers {
+    position: absolute;
+    inset: -45% -6% -5% -6%;
+    width: 112%;
+    height: 150%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* ── Copy ── */
+  .error-title {
+    margin-top: clamp(20px, 3vw, 36px);
+    color: var(--ink);
+    font-weight: 400;
+    font-size: clamp(30px, 3.6vw, 52px);
+    line-height: 1.1;
+  }
+
+  .error-body {
+    max-width: 34ch;
+    margin-top: 12px;
+    color: var(--haze);
+    font-size: var(--text-lg);
+    line-height: 1.4;
+  }
+
+  .error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: clamp(28px, 3.5vw, 40px);
+  }
+
+  /* ── Entrance: the code first, then the words rise in ── */
+  .error-code-box,
+  .error-title,
+  .error-body,
+  .error-actions {
+    animation: error-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .error-title {
+    animation-delay: 0.12s;
+  }
+
+  .error-body {
+    animation-delay: 0.2s;
+  }
+
+  .error-actions {
+    animation-delay: 0.28s;
+  }
+
+  @keyframes error-rise {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .error-code,
+    .error-code-box,
+    .error-title,
+    .error-body,
+    .error-actions {
+      animation: none;
+    }
+
+    .error-fire,
+    .error-embers {
+      display: none;
+    }
+  }
+</style>
