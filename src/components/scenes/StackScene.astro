@@ -170,6 +170,10 @@ function cellStyle(i: number): string {
     background: var(--plum);
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     transform-style: preserve-3d;
+    /* Tiles float all the time and the face tilts under the cursor. As their own layers
+       they are drawn once and only moved; without this the browser repaints the clipped
+       hexagons on every frame and hovering stutters. */
+    will-change: transform;
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
@@ -184,6 +188,7 @@ function cellStyle(i: number): string {
     justify-content: center;
     gap: 8%;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    will-change: transform;
     background: radial-gradient(circle at 50% 30%, #1a0526, var(--panel) 70%);
   }
 
