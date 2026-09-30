@@ -35,6 +35,8 @@ CI (`.github/workflows/deploy.yml`) runs `bun run verify` on every push and pull
 ```
 src/
 ├── pages/[...lang].astro           # Assembles the stage, meta, JSON-LD, once per locale
+├── pages/404.astro                 # Not found (GitHub Pages serves it for every missing path)
+├── pages/errors/[code].astro       # 500, 502, 503, 504 for Cloudflare to serve
 ├── pages/sitemap.xml.ts            # One URL per locale, with hreflang alternates
 ├── pages/robots.txt.ts             # robots.txt: Content Signals + AI crawler rules
 ├── pages/index.md.ts               # The page as Markdown (for agents)
@@ -42,6 +44,7 @@ src/
 ├── layouts/Layout.astro            # <head>, font preload, OG tags, origin trial meta
 ├── components/
 │   ├── SiteHeader.astro, SceneFooter.astro, Stage.astro, Icon.astro, LanguageSwitcher.astro
+│   ├── ErrorPage.astro             # Shared error page (404 and 5xx)
 │   └── scenes/{Intro,Work,Stack,Me}Scene.astro
 ├── content.config.ts               # Zod schemas
 ├── content/                        # profile, projects, tech, highlights (frontmatter only)
@@ -58,6 +61,7 @@ src/
 │   └── effects/                    # detect, mount, scene-effects, liquid, shatter (Canvas UI adapters)
 ├── vendor/canvas-ui/               # Canvas UI source, copied unmodified (see below)
 ├── scripts/main.ts                 # Client entry
+├── scripts/error.ts                # 404 entry: the code burns like the intro name
 └── styles/global.css               # @font-face, tokens, reset, shared pieces
 public/fonts/instrument-serif/      # Self-hosted Instrument Serif (regular + italic, full Latin incl. Turkish)
 tests/                              # bun:test suites for the pure lib modules
@@ -115,6 +119,14 @@ The site is built for crawlers and AI agents as well as people. All agent files 
 - Every locale page sets `<html lang>`, a canonical URL, hreflang alternates (plus `x-default`) and `og:locale`. The sitemap lists all three with alternates.
 - Agent files (`index.md`, `llms.txt`, `llms-full.txt`) and the JSON-LD `WebSite` node stay English only.
 - The copy rules (no em dashes, no "·", no emojis) apply to every language; `tests/i18n.test.ts` checks `MESSAGES`.
+
+## Error Pages
+
+- `ErrorPage.astro` renders every error page: the status code huge and italic, a headline, one line, and buttons. Copy lives in `MESSAGES[locale].errors`.
+- One file serves every path, so the HTML is English and an inline script swaps in German or Turkish copy (and the locale home link) before first paint when the path starts with `/de/` or `/tr/`.
+- `404.html` is live on GitHub Pages. Its code burns with the intro fire and embers (`scripts/error.ts`).
+- GitHub Pages never answers with a 5xx. `/errors/500/` to `/errors/504/` exist for Cloudflare to serve (Error Pages, or Custom Error Rules/Assets on paid plans). Cloudflare fetches them once and inlines what they reference, so they must stay self-contained: inline CSS, no bundled script.
+- Error pages are `noindex` and not in the sitemap.
 
 ## Content Collections
 
