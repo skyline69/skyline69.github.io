@@ -1,28 +1,32 @@
 ---
 /**
- * Fixed header: name, scene nav, scene counter and GitHub link.
+ * Fixed header: name, scene nav, scene counter, language menu and GitHub link.
  * The controller keeps `aria-current` and the counter in sync.
  */
 import Icon from './Icon.astro';
-import { SCENE_IDS, SCENE_LABELS, formatCounter, type SceneId } from '../lib/scenes/state';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import { MESSAGES, type Locale, type Messages } from '../lib/i18n';
+import { SCENE_IDS, formatCounter, type SceneId } from '../lib/scenes/state';
 
 interface Props {
+  locale: Locale;
   name: string;
   githubUrl: string;
 }
 
-const { name, githubUrl }: Props = Astro.props;
+const { locale, name, githubUrl }: Props = Astro.props;
+const t: Messages = MESSAGES[locale];
 ---
 
 <header class="site-header">
   <a class="brand" href="#intro">{name}</a>
-  <nav class="nav" aria-label="Scenes">
+  <nav class="nav" aria-label={t.scenesNav}>
     <ul>
       {
         SCENE_IDS.map((id: SceneId) => (
           <li>
             <a class="nav-link" href={`#${id}`} data-nav={id} aria-current={id === 'intro' ? 'true' : undefined}>
-              {SCENE_LABELS[id]}
+              {t.sceneLabels[id]}
             </a>
           </li>
         ))
@@ -32,6 +36,7 @@ const { name, githubUrl }: Props = Astro.props;
   </nav>
   <div class="header-end">
     <span class="counter" data-counter aria-hidden="true">{formatCounter(0, SCENE_IDS.length)}</span>
+    <LanguageSwitcher locale={locale} />
     <a class="header-github" href={githubUrl}>GitHub<Icon name="arrow-up-right" size={14} /></a>
   </div>
 </header>
@@ -150,14 +155,17 @@ const { name, githubUrl }: Props = Astro.props;
 
   @media (max-width: 768px) {
     .site-header {
-      grid-template-columns: auto 1fr;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
     }
 
     .nav {
       justify-self: end;
     }
 
-    .header-end {
+    /* Only the language menu stays on small screens. */
+    .counter,
+    .header-github {
       display: none;
     }
   }

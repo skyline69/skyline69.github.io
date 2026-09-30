@@ -8,6 +8,7 @@ import {
   type TechTile,
 } from './content';
 import { fillAge, getAge } from './date';
+import { MESSAGES, textIn, type Locale } from './i18n';
 import type { StackItem } from './stack';
 
 // ── Site-wide data shared by the page and the agent files ──
@@ -24,13 +25,12 @@ export interface SiteMeta {
 }
 
 /**
- * Page title and meta description for a profile.
+ * Page title and meta description for a profile, in one locale.
  */
-export function siteMeta(profile: Profile): SiteMeta {
-  return {
-    title: `${profile.name} (${profile.handle})`,
-    description: `${profile.name} (${profile.handle}) builds big, fast software, mostly in Rust. ${profile.intro}`,
-  };
+export function siteMeta(profile: Profile, locale: Locale = 'en'): SiteMeta {
+  const title: string = `${profile.name} (${profile.handle})`;
+  const intro: string = textIn(profile, profile.translations, locale).intro;
+  return { title, description: `${title} ${MESSAGES[locale].tagline} ${intro}` };
 }
 
 /**

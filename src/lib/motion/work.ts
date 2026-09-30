@@ -199,7 +199,7 @@ export function initWork(scene: HTMLElement, capabilities: Capabilities): Work |
       detail.classList.toggle('is-active', indexOf(detail) === next);
     });
     frame.href = item.href;
-    frame.setAttribute('aria-label', `Open ${item.dataset['title'] ?? 'project'}`);
+    frame.setAttribute('aria-label', item.dataset['openLabel'] ?? item.textContent.trim());
 
     swapTo(next);
     if (liquid && !capabilities.reducedMotion) {

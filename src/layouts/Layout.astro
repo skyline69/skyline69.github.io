@@ -6,23 +6,27 @@
 import '../styles/global.css';
 import { ORIGIN_TRIAL_TOKEN } from 'astro:env/server';
 import { AGENT_PATHS } from '../lib/agents';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_INFO, MESSAGES, localePath, type Locale } from '../lib/i18n';
 import { DEFAULT_SITE } from '../lib/site';
 
 interface Props {
+  locale: Locale;
   title: string;
   description: string;
   author: string;
   jsonLd: string;
 }
 
-const { title, description, author, jsonLd }: Props = Astro.props;
+const { locale, title, description, author, jsonLd }: Props = Astro.props;
 const site: URL = Astro.site ?? DEFAULT_SITE;
-const canonical: string = new URL(Astro.url.pathname, site).href;
+const urlFor = (l: Locale): string => new URL(localePath(l), site).href;
+const canonical: string = urlFor(locale);
+const otherLocales: Locale[] = LOCALES.filter((l: Locale): boolean => l !== locale);
 const ogImage: string = new URL('/og.png', site).href;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -37,8 +41,10 @@ const ogImage: string = new URL('/og.png', site).href;
       content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
     />
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" type="text/markdown" href={AGENT_PATHS.markdown} title="Markdown" />
-    <link rel="alternate" type="text/plain" href={AGENT_PATHS.llms} title="llms.txt" />
+    {LOCALES.map((l: Locale) => <link rel="alternate" hreflang={l} href={urlFor(l)} />)}
+    <link rel="alternate" hreflang="x-default" href={urlFor(DEFAULT_LOCALE)} />
+    <link rel="alternate" type="text/markdown" hreflang="en" href={AGENT_PATHS.markdown} title="Markdown" />
+    <link rel="alternate" type="text/plain" hreflang="en" href={AGENT_PATHS.llms} title="llms.txt" />
     <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark" />
     <meta name="generator" content={Astro.generator} />
@@ -63,7 +69,8 @@ const ogImage: string = new URL('/og.png', site).href;
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={title} />
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale" content={LOCALE_INFO[locale].ogLocale} />
+    {otherLocales.map((l: Locale) => <meta property="og:locale:alternate" content={LOCALE_INFO[l].ogLocale} />)}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -84,7 +91,7 @@ const ogImage: string = new URL('/og.png', site).href;
 
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main">{MESSAGES[locale].skipToContent}</a>
     <slot />
   </body>
 </html>

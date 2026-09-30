@@ -27,11 +27,22 @@ export interface SeoProject {
   archived: boolean;
 }
 
+/** The page the graph describes: one language version of the site. */
+export interface SeoPage {
+  url: string;
+  language: string;
+}
+
 /**
  * Build a JSON-LD graph: the page as a ProfilePage on a WebSite, the site owner as its
- * Person, and each project as SoftwareSourceCode.
+ * Person, and each project as SoftwareSourceCode. The page defaults to the English root.
  */
-export function buildJsonLd(person: SeoPerson, projects: readonly SeoProject[]): JsonValue {
+export function buildJsonLd(
+  person: SeoPerson,
+  projects: readonly SeoProject[],
+  page?: SeoPage,
+): JsonValue {
+  const pageUrl: string = page?.url ?? person.siteUrl;
   const personId: string = `${person.siteUrl}#person`;
   const websiteId: string = `${person.siteUrl}#website`;
   const title: string = `${person.name} (${person.handle})`;
@@ -47,11 +58,11 @@ export function buildJsonLd(person: SeoPerson, projects: readonly SeoProject[]):
 
   const pageNode: JsonValue = {
     '@type': 'ProfilePage',
-    '@id': `${person.siteUrl}#page`,
-    url: person.siteUrl,
+    '@id': `${pageUrl}#page`,
+    url: pageUrl,
     name: title,
     description: person.description,
-    inLanguage: 'en',
+    inLanguage: page?.language ?? 'en',
     isPartOf: { '@id': websiteId },
     mainEntity: { '@id': personId },
   };

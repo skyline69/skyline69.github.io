@@ -1,0 +1,149 @@
+---
+/**
+ * The whole site: four scenes on one stage, once per locale ("/", "/de/", "/tr/").
+ */
+import type { CollectionEntry } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import Stage from '../components/Stage.astro';
+import IntroScene from '../components/scenes/IntroScene.astro';
+import WorkScene, { type WorkProject } from '../components/scenes/WorkScene.astro';
+import StackScene from '../components/scenes/StackScene.astro';
+import MeScene, { type MeCard } from '../components/scenes/MeScene.astro';
+import { getActiveHighlights, getActiveProjects, getProfile, getStack } from '../lib/content';
+import { fillAge, getAge } from '../lib/date';
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  MESSAGES,
+  localePath,
+  textIn,
+  type Locale,
+  type Messages,
+} from '../lib/i18n';
+import { buildJsonLd, serializeJsonLd } from '../lib/seo';
+import { DEFAULT_SITE, siteMeta, type SiteMeta } from '../lib/site';
+import type { StackItem } from '../lib/stack';
+
+interface Props {
+  locale: Locale;
+}
+
+interface LocalePath {
+  params: { lang: string | undefined };
+  props: Props;
+}
+
+export function getStaticPaths(): LocalePath[] {
+  return LOCALES.map(
+    (locale: Locale): LocalePath => ({
+      params: { lang: locale === DEFAULT_LOCALE ? undefined : locale },
+      props: { locale },
+    }),
+  );
+}
+
+const { locale }: Props = Astro.props;
+const t: Messages = MESSAGES[locale];
+
+const [profileEntry, projectEntries, highlightEntries, stack] = await Promise.all([
+  getProfile(),
+  getActiveProjects(),
+  getActiveHighlights(),
+  getStack(),
+]);
+
+type ProfileData = CollectionEntry<'profile'>['data'];
+type ProjectData = CollectionEntry<'projects'>['data'];
+
+const profile: ProfileData = profileEntry.data;
+const text: ProfileData['translations']['de'] = textIn(profile, profile.translations, locale);
+const age: number = getAge(profile.birthDate);
+const site: URL = Astro.site ?? DEFAULT_SITE;
+const siteUrl: string = site.href;
+const pageUrl: string = new URL(localePath(locale), site).href;
+const { title, description }: SiteMeta = siteMeta(profile, locale);
+
+function projectText(p: ProjectData): ProjectData['translations']['de'] {
+  return textIn(p, p.translations, locale);
+}
+
+const projects: WorkProject[] = projectEntries.map((entry: CollectionEntry<'projects'>): WorkProject => {
+  const p: ProjectData = entry.data;
+  const copy: ProjectData['translations']['de'] = projectText(p);
+  return {
+    title: p.title,
+    description: copy.description,
+    note: copy.note,
+    tags: p.tags,
+    archived: p.status === 'archived',
+    href: p.siteUrl ?? p.repoUrl,
+    linkLabel: p.siteUrl === undefined ? t.viewOnGitHub : t.visitSite,
+    repoUrl: p.repoUrl,
+    showRepoLink: p.siteUrl !== undefined,
+    image: p.image,
+    visual: p.visual,
+  };
+});
+
+const cards: MeCard[] = highlightEntries.map((entry: CollectionEntry<'highlights'>): MeCard => {
+  const card: CollectionEntry<'highlights'>['data']['translations']['de'] = textIn(
+    entry.data,
+    entry.data.translations,
+    locale,
+  );
+  return { title: card.title, body: card.body, accent: card.accent };
+});
+
+const jsonLd: string = serializeJsonLd(
+  buildJsonLd(
+    {
+      name: profile.name,
+      handle: profile.handle,
+      siteUrl,
+      githubUrl: profile.githubUrl,
+      description,
+      knowsAbout: stack.map((item: StackItem): string => item.name),
+    },
+    projectEntries.map((entry: CollectionEntry<'projects'>) => ({
+      title: entry.data.title,
+      description: projectText(entry.data).description,
+      repoUrl: entry.data.repoUrl,
+      siteUrl: entry.data.siteUrl,
+      languages: entry.data.tags,
+      archived: entry.data.status === 'archived',
+    })),
+    { url: pageUrl, language: locale },
+  ),
+);
+---
+
+<Layout locale={locale} title={title} description={description} author={profile.name} jsonLd={jsonLd}>
+  <SiteHeader locale={locale} name={profile.name} githubUrl={profile.githubUrl} />
+  <Stage>
+    <IntroScene
+      locale={locale}
+      name={profile.name}
+      headline={text.headline}
+      headlineAccent={text.headlineAccent}
+      intro={text.intro}
+      githubUrl={profile.githubUrl}
+    />
+    <WorkScene locale={locale} projects={projects} />
+    <StackScene locale={locale} items={stack} />
+    <MeScene
+      locale={locale}
+      name={profile.name}
+      summary={text.summary.map((line: string): string => fillAge(line, age))}
+      origin={text.origin}
+      languages={text.languages}
+      next={text.next}
+      cards={cards}
+      githubUrl={profile.githubUrl}
+    />
+  </Stage>
+</Layout>
+
+<script>
+  import '../scripts/main';
+</script>

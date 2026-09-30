@@ -7,6 +7,7 @@ import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../Icon.astro';
 import SceneFooter from '../SceneFooter.astro';
+import { MESSAGES, type Locale, type Messages } from '../../lib/i18n';
 
 export interface WorkProject {
   title: string;
@@ -23,16 +24,18 @@ export interface WorkProject {
 }
 
 interface Props {
+  locale: Locale;
   projects: readonly WorkProject[];
 }
 
-const { projects }: Props = Astro.props;
+const { locale, projects }: Props = Astro.props;
+const t: Messages = MESSAGES[locale];
 const first: WorkProject | undefined = projects[0];
 const pad = (n: number): string => String(n).padStart(2, '0');
 ---
 
 <section id="work" class="scene scene--work" data-scene="work" aria-labelledby="work-title">
-  <h2 id="work-title" class="visually-hidden" data-scene-focus tabindex="-1">Work</h2>
+  <h2 id="work-title" class="visually-hidden" data-scene-focus tabindex="-1">{t.sceneLabels.work}</h2>
   <div class="scene-body work">
     <div class="work-main">
       <ol class="work-list" data-reveal>
@@ -44,12 +47,12 @@ const pad = (n: number): string => String(n).padStart(2, '0');
                 href={project.href}
                 data-work-item
                 data-index={i}
-                data-title={project.title}
+                data-open-label={t.openProject(project.title)}
                 data-active={i === 0 ? '' : undefined}
               >
                 <em class="work-num">{pad(i + 1)}</em>
                 <span class="work-title">{project.title}</span>
-                {project.archived && <span class="work-badge">Archived</span>}
+                {project.archived && <span class="work-badge">{t.archived}</span>}
               </a>
             </li>
           ))
@@ -75,7 +78,7 @@ const pad = (n: number): string => String(n).padStart(2, '0');
                 </a>
                 {project.showRepoLink && (
                   <a class="pill-button pill-button--ghost" href={project.repoUrl}>
-                    Source
+                    {t.source}
                   </a>
                 )}
               </div>
@@ -87,7 +90,7 @@ const pad = (n: number): string => String(n).padStart(2, '0');
 
     {
       first && (
-        <a class="work-frame" href={first.href} aria-label={`Open ${first.title}`} data-work-frame data-reveal data-effect="liquid">
+        <a class="work-frame" href={first.href} aria-label={t.openProject(first.title)} data-work-frame data-reveal data-effect="liquid">
           <div class="work-frame-inner" data-effect-content>
             {projects.map((project: WorkProject, i: number) => (
               <figure
@@ -97,7 +100,7 @@ const pad = (n: number): string => String(n).padStart(2, '0');
               >
                 <Image
                   src={project.image}
-                  alt={`${project.title} ${project.visual === 'icon' ? 'app icon' : 'screenshot'}`}
+                  alt={t.imageAlt(project.title, project.visual)}
                   widths={project.visual === 'icon' ? [300, 450, 600] : [560, 840, 1120]}
                   sizes={project.visual === 'icon' ? '300px' : '(max-width: 1024px) 90vw, 560px'}
                   loading={i === 0 ? 'eager' : 'lazy'}
@@ -111,12 +114,12 @@ const pad = (n: number): string => String(n).padStart(2, '0');
               ))}
             </div>
           </div>
-          <span class="visit-disc" data-visit-disc aria-hidden="true">Visit</span>
+          <span class="visit-disc" data-visit-disc aria-hidden="true">{t.visit}</span>
         </a>
       )
     }
   </div>
-  <SceneFooter current="work" />
+  <SceneFooter locale={locale} current="work" />
 </section>
 
 <style>

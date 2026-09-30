@@ -3,8 +3,10 @@
  * Scene 01: the name, the one-line pitch and the way in.
  */
 import Icon from '../Icon.astro';
+import { MESSAGES, type Locale, type Messages } from '../../lib/i18n';
 
 interface Props {
+  locale: Locale;
   name: string;
   headline: string;
   headlineAccent: string;
@@ -12,7 +14,8 @@ interface Props {
   githubUrl: string;
 }
 
-const { name, headline, headlineAccent, intro, githubUrl }: Props = Astro.props;
+const { locale, name, headline, headlineAccent, intro, githubUrl }: Props = Astro.props;
+const t: Messages = MESSAGES[locale];
 ---
 
 <section id="intro" class="scene scene--intro" data-scene="intro" aria-labelledby="intro-title">
@@ -33,7 +36,7 @@ const { name, headline, headlineAccent, intro, githubUrl }: Props = Astro.props;
       </p>
       <p class="intro-text" data-reveal>{intro}</p>
       <div class="intro-actions" data-reveal>
-        <a class="pill-button" href="#work">See the work<Icon name="arrow-right" /></a>
+        <a class="pill-button" href="#work">{t.seeTheWork}<Icon name="arrow-right" /></a>
         <a class="pill-button pill-button--ghost" href={githubUrl}>GitHub</a>
       </div>
     </div>
@@ -41,7 +44,7 @@ const { name, headline, headlineAccent, intro, githubUrl }: Props = Astro.props;
 
   <div class="intro-footer" data-reveal>
     <p class="rail-hint">
-      <span class="hint-fine">Scroll</span>
+      <span class="hint-fine">{t.scrollHint}</span>
       <Icon name="arrow-left" />
       <Icon name="arrow-right" />
     </p>

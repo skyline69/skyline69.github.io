@@ -1,0 +1,137 @@
+---
+/**
+ * Language menu in the header: the current locale code, opening a list of every language
+ * by its own name. A native <details>, so it works without JavaScript; `lib/lang-menu.ts`
+ * animates it, closes it on outside click or Escape and keeps the current scene when switching.
+ */
+import { LOCALES, LOCALE_INFO, MESSAGES, localePath, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale }: Props = Astro.props;
+---
+
+<details class="lang" data-lang-menu>
+  <summary class="lang-current" aria-label={`${MESSAGES[locale].language}: ${LOCALE_INFO[locale].name}`}>
+    {locale.toUpperCase()}
+    <span class="lang-caret" aria-hidden="true"></span>
+  </summary>
+  <ul class="lang-list">
+    {
+      LOCALES.map((l: Locale) => (
+        <li>
+          <a
+            class="lang-link"
+            href={localePath(l)}
+            hreflang={l}
+            lang={l}
+            aria-current={l === locale ? 'true' : undefined}
+            data-lang-link
+          >
+            {LOCALE_INFO[l].name}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</details>
+
+<style>
+  .lang {
+    position: relative;
+  }
+
+  .lang-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 4px;
+    color: var(--haze);
+    font-size: var(--text-base);
+    list-style: none;
+    cursor: pointer;
+    transition: color 0.45s ease;
+  }
+
+  .lang-current::-webkit-details-marker {
+    display: none;
+  }
+
+  .lang-current:hover,
+  .lang[open] .lang-current {
+    color: var(--ink);
+  }
+
+  /* A small chevron that flips when the menu is open. */
+  .lang-caret {
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.3s ease;
+  }
+
+  .lang[open] .lang-caret {
+    margin-top: 3px;
+    transform: rotate(-135deg);
+  }
+
+  .lang-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 30;
+    min-width: 168px;
+    padding: 6px;
+    border: 1px solid var(--plum);
+    border-radius: 18px;
+    background: var(--panel);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(112, 11, 151, 0.28);
+  }
+
+  /* With JavaScript, lib/lang-menu.ts animates opening and closing. */
+  :global(html:not(.js)) .lang-list {
+    animation: lang-in 0.22s ease-out;
+  }
+
+  .lang-link {
+    display: block;
+    padding: 10px 16px;
+    border-radius: 12px;
+    color: var(--haze);
+    font-size: var(--text-base);
+  }
+
+  .lang-link:hover {
+    background: rgba(112, 11, 151, 0.25);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .lang-link[aria-current='true'] {
+    color: var(--glow);
+  }
+
+  @keyframes lang-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lang-current,
+    .lang-caret {
+      transition: none;
+    }
+
+    .lang-list {
+      animation: none;
+    }
+  }
+</style>

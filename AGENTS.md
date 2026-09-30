@@ -6,6 +6,8 @@ Guidelines for AI coding agents working in this repository.
 
 Single-page developer portfolio built with Astro 7 (static output) and vanilla TypeScript. The page is a **stage**: four full-screen scenes (Intro, Work, Stack, Me) shown one at a time. Wheel, swipe, arrow keys and the nav change scenes; the page itself never scrolls. Without JavaScript the scenes stack as a normal scrolling page. Content comes from Astro Content Collections.
 
+The page is published in English (`/`), German (`/de/`) and Turkish (`/tr/`). See Languages below.
+
 Runtime dependencies: `gsap` (core, Observer, SplitText), `ogl` (the intro fire shader, lazy-loaded) and vendored Canvas UI effects. No UI framework, no Tailwind, no CSS preprocessor.
 
 ## Commands
@@ -32,30 +34,32 @@ CI (`.github/workflows/deploy.yml`) runs `bun run verify` on every push and pull
 
 ```
 src/
-├── pages/index.astro               # Assembles the stage, meta, JSON-LD
-├── pages/sitemap.xml.ts            # One-page sitemap
+├── pages/[...lang].astro           # Assembles the stage, meta, JSON-LD, once per locale
+├── pages/sitemap.xml.ts            # One URL per locale, with hreflang alternates
 ├── pages/robots.txt.ts             # robots.txt: Content Signals + AI crawler rules
 ├── pages/index.md.ts               # The page as Markdown (for agents)
 ├── pages/llms.txt.ts, llms-full.txt.ts
 ├── layouts/Layout.astro            # <head>, font preload, OG tags, origin trial meta
 ├── components/
-│   ├── SiteHeader.astro, SceneFooter.astro, Stage.astro, Icon.astro
+│   ├── SiteHeader.astro, SceneFooter.astro, Stage.astro, Icon.astro, LanguageSwitcher.astro
 │   └── scenes/{Intro,Work,Stack,Me}Scene.astro
 ├── content.config.ts               # Zod schemas
 ├── content/                        # profile, projects, tech, highlights (frontmatter only)
 ├── lib/
 │   ├── content.ts                  # Collection queries (astro:content)
+│   ├── i18n.ts                     # Locales, interface copy per locale, textIn (tested)
 │   ├── stack.ts, seo.ts, date.ts   # Pure logic, unit tested
 │   ├── agents.ts                   # Pure builders for robots.txt, Markdown, llms.txt (tested)
 │   ├── site.ts                     # Title/description + page data shared by page and agent files
 │   ├── stage.ts                    # Client orchestrator: controller + motion + effects
+│   ├── lang-menu.ts                # Language menu: outside click, Escape, keeps the scene hash
 │   ├── scenes/                     # state.ts (pure), controller.ts, timelines.ts, shatter-transition.ts
 │   ├── motion/                     # intro, reveal, mist, nav, work, stack (GSAP); fire (OGL shader), embers, name-fx
 │   └── effects/                    # detect, mount, scene-effects, liquid, shatter (Canvas UI adapters)
 ├── vendor/canvas-ui/               # Canvas UI source, copied unmodified (see below)
 ├── scripts/main.ts                 # Client entry
 └── styles/global.css               # @font-face, tokens, reset, shared pieces
-public/fonts/instrument-serif/      # Self-hosted Instrument Serif (regular + italic)
+public/fonts/instrument-serif/      # Self-hosted Instrument Serif (regular + italic, full Latin incl. Turkish)
 tests/                              # bun:test suites for the pure lib modules
 ```
 
@@ -102,6 +106,15 @@ The site is built for crawlers and AI agents as well as people. All agent files 
 - Only `lib/effects/*` may import vendor code, and only through dynamic `import()` so browsers without HTML-in-Canvas never download it.
 - In use: Shatter (scene transitions) and Liquid (Work image frame). Every effect has a GSAP or CSS fallback that must look finished on its own.
 - Effects need the Chrome HTML-in-Canvas origin trial. The token comes from the `ORIGIN_TRIAL_TOKEN` env var (a GitHub repository variable in CI); when unset, no meta tag is emitted.
+
+## Languages
+
+- Locales live in `lib/i18n.ts` (`LOCALES`, `LOCALE_INFO`). English is the default and has no prefix; `pages/[...lang].astro` builds one page per locale.
+- Interface copy (nav, buttons, labels, aria text, meta tagline) is in `MESSAGES`, one object per locale. Never hardcode visible text in components; add a key to `Messages` instead.
+- Content copy is in the collections: profile, projects and highlights have a required `translations` block with `de` and `tr` versions of their text fields. `textIn()` picks the right one and never falls back to English.
+- Every locale page sets `<html lang>`, a canonical URL, hreflang alternates (plus `x-default`) and `og:locale`. The sitemap lists all three with alternates.
+- Agent files (`index.md`, `llms.txt`, `llms-full.txt`) and the JSON-LD `WebSite` node stay English only.
+- The copy rules (no em dashes, no "·", no emojis) apply to every language; `tests/i18n.test.ts` checks `MESSAGES`.
 
 ## Content Collections
 

@@ -3,6 +3,7 @@
  * Scene 04: a short introduction, three facts, and cards for life off the keyboard.
  */
 import SceneFooter from '../SceneFooter.astro';
+import { MESSAGES, type Locale, type Messages } from '../../lib/i18n';
 
 export interface MeCard {
   title: string;
@@ -11,6 +12,7 @@ export interface MeCard {
 }
 
 interface Props {
+  locale: Locale;
   name: string;
   summary: readonly string[];
   origin: string;
@@ -20,14 +22,15 @@ interface Props {
   githubUrl: string;
 }
 
-const { name, summary, origin, languages, next, cards, githubUrl }: Props = Astro.props;
+const { locale, name, summary, origin, languages, next, cards, githubUrl }: Props = Astro.props;
+const t: Messages = MESSAGES[locale];
 ---
 
 <section id="me" class="scene scene--me" data-scene="me" aria-labelledby="me-title">
   <div class="scene-body me">
     <div class="me-main">
       <h2 id="me-title" class="me-title" data-reveal data-scene-focus tabindex="-1">
-        Hi, I'm <span class="me-name">{name}.</span>
+        {t.greeting}{' '}<span class="me-name">{name}.</span>
       </h2>
       {
         summary.map((text: string, i: number) => (
@@ -38,15 +41,15 @@ const { name, summary, origin, languages, next, cards, githubUrl }: Props = Astr
       }
       <dl class="me-facts" data-reveal>
         <div>
-          <dt>From</dt>
+          <dt>{t.from}</dt>
           <dd>{origin}</dd>
         </div>
         <div>
-          <dt>Speaks</dt>
+          <dt>{t.speaks}</dt>
           <dd>{languages.join(', ')}</dd>
         </div>
         <div>
-          <dt>Next</dt>
+          <dt>{t.next}</dt>
           <dd>{next}</dd>
         </div>
       </dl>
@@ -66,7 +69,7 @@ const { name, summary, origin, languages, next, cards, githubUrl }: Props = Astr
       }
     </div>
   </div>
-  <SceneFooter current="me" cta={{ href: githubUrl, label: 'Say hi on GitHub' }} />
+  <SceneFooter locale={locale} current="me" cta={{ href: githubUrl, label: t.sayHi }} />
 </section>
 
 <style>

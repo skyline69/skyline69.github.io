@@ -7,8 +7,10 @@ import { Image } from 'astro:assets';
 import SceneFooter from '../SceneFooter.astro';
 import type { TechTile } from '../../lib/content';
 import { formatUsedIn, type StackItem } from '../../lib/stack';
+import { MESSAGES, type Locale, type Messages } from '../../lib/i18n';
 
 interface Props {
+  locale: Locale;
   items: readonly StackItem<TechTile>[];
 }
 
@@ -21,7 +23,8 @@ interface Cell {
 const WIDE_ROWS: readonly number[] = [5, 4, 5];
 const NARROW_ROWS: readonly number[] = [4, 3, 4, 3];
 
-const { items }: Props = Astro.props;
+const { locale, items }: Props = Astro.props;
+const t: Messages = MESSAGES[locale];
 
 /**
  * Grid cell for every tile. Each tile spans two half-columns; shorter rows are centred,
@@ -49,7 +52,7 @@ function cellStyle(i: number): string {
 ---
 
 <section id="stack" class="scene scene--stack" data-scene="stack" aria-labelledby="stack-title">
-  <h2 id="stack-title" class="visually-hidden" data-scene-focus tabindex="-1">Stack</h2>
+  <h2 id="stack-title" class="visually-hidden" data-scene-focus tabindex="-1">{t.sceneLabels.stack}</h2>
   <div class="scene-body stack">
     <div class="stack-field" data-stack-field>
       <span class="stack-spot" data-stack-spot aria-hidden="true"></span>
@@ -64,7 +67,7 @@ function cellStyle(i: number): string {
                 data-stack-tile
                 data-name={item.name}
                 data-related={item.related.join(',')}
-                data-used-in={formatUsedIn(item.usedIn)}
+                data-used-in={formatUsedIn(item.usedIn, locale)}
                 data-state="idle"
                 aria-pressed="false"
               >
@@ -87,7 +90,7 @@ function cellStyle(i: number): string {
       <p class="stack-text" data-stack-text></p>
     </div>
   </div>
-  <SceneFooter current="stack" />
+  <SceneFooter locale={locale} current="stack" />
 </section>
 
 <style>

@@ -5,14 +5,6 @@ export const SCENE_IDS = ['intro', 'work', 'stack', 'me'] as const;
 
 export type SceneId = (typeof SCENE_IDS)[number];
 
-/** Human labels for nav, rail and footer. */
-export const SCENE_LABELS: Readonly<Record<SceneId, string>> = {
-  intro: 'Intro',
-  work: 'Work',
-  stack: 'Stack',
-  me: 'Me',
-};
-
 /**
  * Type guard for scene ids coming from the DOM or the URL.
  */

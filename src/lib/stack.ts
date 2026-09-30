@@ -1,3 +1,5 @@
+import { MESSAGES, type Locale } from './i18n';
+
 // ── Stack graph: which tech is used where ──
 
 /** Minimal tech shape needed to build the stack wall. */
@@ -26,23 +28,23 @@ export type StackItem<T extends TechRef = TechRef> = T & StackLinks;
 /**
  * Join names into a readable list: "A", "A and B", "A, B and C".
  */
-export function formatList(items: readonly string[]): string {
+export function formatList(items: readonly string[], locale: Locale = 'en'): string {
   if (items.length <= 1) {
     return items.join('');
   }
   const head: string[] = items.slice(0, -1);
   const tail: string = items.at(-1) ?? '';
-  return `${head.join(', ')} and ${tail}`;
+  return `${head.join(', ')} ${MESSAGES[locale].and} ${tail}`;
 }
 
 /**
  * Sentence shown when a stack word is active.
  */
-export function formatUsedIn(usedIn: readonly string[]): string {
+export function formatUsedIn(usedIn: readonly string[], locale: Locale = 'en'): string {
   if (usedIn.length === 0) {
-    return 'In the toolbox, not in a listed project yet.';
+    return MESSAGES[locale].unused;
   }
-  return `Used in ${formatList(usedIn)}.`;
+  return MESSAGES[locale].usedIn(formatList(usedIn, locale));
 }
 
 /**

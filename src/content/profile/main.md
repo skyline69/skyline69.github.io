@@ -14,5 +14,32 @@ languages:
   - Turkish
   - English
 next: 'Succeed with a Fintech startup'
+translations:
+  de:
+    headline: 'Ich baue große, schnelle Software, meist in'
+    headlineAccent: 'Rust.'
+    intro: 'Entwickler von Tron Terminal, Gravitas und neo-lolcat. Ursprünglich aus der Türkei, seit 2013 in Deutschland. Ich programmiere, seit ich 10 bin.'
+    summary:
+      - 'Ich bin ein {age}-jähriger Entwickler aus Deutschland, der gerne elegante und effiziente Lösungen baut.'
+      - 'Mit 10 hat mir mein Vater das Programmieren gezeigt, und seitdem hat es mich nicht mehr losgelassen.'
+    origin: 'Türkei, seit 2013 in Deutschland'
+    languages:
+      - Deutsch
+      - Türkisch
+      - Englisch
+    next: 'Mit einem Fintech-Startup erfolgreich werden'
+  tr:
+    headline: 'Büyük ve hızlı yazılımlar geliştiriyorum, çoğunlukla'
+    headlineAccent: 'Rust ile.'
+    intro: "Tron Terminal, Gravitas ve neo-lolcat'in yapımcısı. Aslen Türkiyeli, 2013'ten beri Almanya'da. 10 yaşımdan beri kod yazıyorum."
+    summary:
+      - "{age} yaşında, Almanya'da yaşayan ve zarif, verimli çözümler üretmeyi seven bir geliştiriciyim."
+      - 'Babam beni programlamayla tanıştırdığında 10 yaşındaydım ve o günden beri bırakamadım.'
+    origin: "Türkiye, 2013'ten beri Almanya'da"
+    languages:
+      - Almanca
+      - Türkçe
+      - İngilizce
+    next: 'Bir fintech girişimiyle başarıya ulaşmak'
 githubUrl: 'https://github.com/skyline69'
 ---

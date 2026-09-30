@@ -3,14 +3,17 @@
  * Bottom bar of a scene: link back, progress through the stage, link forward (or a call to action).
  */
 import Icon from './Icon.astro';
-import { SCENE_IDS, SCENE_LABELS, indexOfScene, type SceneId } from '../lib/scenes/state';
+import { MESSAGES, type Locale, type Messages } from '../lib/i18n';
+import { SCENE_IDS, indexOfScene, type SceneId } from '../lib/scenes/state';
 
 interface Props {
+  locale: Locale;
   current: SceneId;
   cta?: { href: string; label: string };
 }
 
-const { current, cta }: Props = Astro.props;
+const { locale, current, cta }: Props = Astro.props;
+const t: Messages = MESSAGES[locale];
 const index: number = indexOfScene(current);
 const prev: SceneId | undefined = SCENE_IDS[index - 1];
 const next: SceneId | undefined = SCENE_IDS[index + 1];
@@ -21,17 +24,17 @@ const next: SceneId | undefined = SCENE_IDS[index + 1];
     prev ? (
       <a class="step step--prev" href={`#${prev}`}>
         <Icon name="arrow-left" />
-        {SCENE_LABELS[prev]}
+        {t.sceneLabels[prev]}
       </a>
     ) : (
       <span />
     )
   }
-  <ol class="progress" aria-label={`Scene ${index + 1} of ${SCENE_IDS.length}`}>
+  <ol class="progress" aria-label={t.sceneProgress(index + 1, SCENE_IDS.length)}>
     {
       SCENE_IDS.map((id: SceneId, i: number) => (
         <li class:list={['segment', { 'segment--done': i < index, 'segment--current': i === index }]}>
-          <span class="visually-hidden">{SCENE_LABELS[id]}</span>
+          <span class="visually-hidden">{t.sceneLabels[id]}</span>
         </li>
       ))
     }
@@ -44,7 +47,7 @@ const next: SceneId | undefined = SCENE_IDS[index + 1];
       </a>
     ) : next ? (
       <a class="step step--next" href={`#${next}`}>
-        {SCENE_LABELS[next]}
+        {t.sceneLabels[next]}
         <Icon name="arrow-right" />
       </a>
     ) : (
