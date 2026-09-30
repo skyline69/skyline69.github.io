@@ -32,6 +32,20 @@ export function isLocale(value: string): value is Locale {
 }
 
 /**
+ * The first published locale among the reader's preferred languages (`navigator.languages`),
+ * matched by language and ignoring region: "de-AT" counts as German. Null when none match.
+ */
+export function preferredLocale(languages: readonly string[]): Locale | null {
+  for (const tag of languages) {
+    const language: string = tag.toLowerCase().split('-')[0] ?? '';
+    if (isLocale(language)) {
+      return language;
+    }
+  }
+  return null;
+}
+
+/**
  * Root-relative path of a locale's page: "/" for English, "/de/" for German.
  */
 export function localePath(locale: Locale): string {
@@ -95,6 +109,9 @@ export interface Messages {
   errors: Readonly<Record<ErrorCode, ErrorCopy>>;
   backHome: string;
   tryAgain: string;
+  langHint: string;
+  langHintAction: string;
+  dismiss: string;
 }
 
 const EN: Messages = {
@@ -140,6 +157,9 @@ const EN: Messages = {
   },
   backHome: 'Back to the start',
   tryAgain: 'Try again',
+  langHint: 'This page is also in English.',
+  langHintAction: 'Read in English',
+  dismiss: 'Dismiss',
 };
 
 const DE: Messages = {
@@ -188,6 +208,9 @@ const DE: Messages = {
   },
   backHome: 'Zurück zum Anfang',
   tryAgain: 'Nochmal versuchen',
+  langHint: 'Diese Seite gibt es auch auf Deutsch.',
+  langHintAction: 'Auf Deutsch lesen',
+  dismiss: 'Schließen',
 };
 
 const TR: Messages = {
@@ -236,6 +259,9 @@ const TR: Messages = {
   },
   backHome: 'Başa dön',
   tryAgain: 'Tekrar dene',
+  langHint: 'Bu sayfa Türkçe olarak da var.',
+  langHintAction: 'Türkçe oku',
+  dismiss: 'Kapat',
 };
 
 export const MESSAGES: Readonly<Record<Locale, Messages>> = { en: EN, de: DE, tr: TR };

@@ -1,0 +1,126 @@
+---
+/**
+ * Suggests the reader's own language when the page is in another one: a small panel under
+ * the language menu, written in the suggested language. One hidden panel per other locale;
+ * `lib/lang-hint.ts` reveals the one matching the browser's languages, never redirects,
+ * and remembers when the reader dismisses it or picks a language.
+ */
+import Icon from './Icon.astro';
+import { LOCALES, MESSAGES, localePath, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale }: Props = Astro.props;
+const others: Locale[] = LOCALES.filter((l: Locale): boolean => l !== locale);
+---
+
+{
+  others.map((l: Locale) => (
+    <aside class="lang-hint" lang={l} aria-label={MESSAGES[l].language} data-lang-hint={l} hidden>
+      <p class="lang-hint-text">{MESSAGES[l].langHint}</p>
+      <a class="lang-hint-go" href={localePath(l)} hreflang={l} data-lang-hint-go>
+        {MESSAGES[l].langHintAction}
+        <Icon name="arrow-right" size={14} />
+      </a>
+      <button type="button" class="lang-hint-close" aria-label={MESSAGES[l].dismiss} data-lang-hint-close>
+        <Icon name="close" size={14} />
+      </button>
+    </aside>
+  ))
+}
+
+<style>
+  .lang-hint {
+    position: fixed;
+    z-index: 25;
+    top: calc(var(--header-h) + env(safe-area-inset-top));
+    right: calc(var(--gutter) + env(safe-area-inset-right));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: calc(100vw - 2 * var(--gutter));
+    padding: 8px 8px 8px 20px;
+    border: 1px solid var(--plum);
+    border-radius: 999px;
+    background: var(--panel);
+    box-shadow:
+      0 18px 50px rgba(0, 0, 0, 0.6),
+      0 0 30px rgba(112, 11, 151, 0.28);
+    font-size: var(--text-sm);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .lang-hint[hidden] {
+    display: none;
+  }
+
+  .lang-hint-text {
+    color: var(--haze);
+    white-space: nowrap;
+  }
+
+  .lang-hint-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    background: var(--orchid);
+    color: #ffffff;
+    white-space: nowrap;
+  }
+
+  .lang-hint-go:hover {
+    background: var(--violet);
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .lang-hint-close {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--haze);
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .lang-hint-close:hover {
+    color: var(--ink);
+  }
+
+  /* Phones: full width under the header, the text above the actions if it has to wrap. */
+  @media (max-width: 560px) {
+    .lang-hint {
+      left: calc(var(--gutter) + env(safe-area-inset-left));
+      max-width: none;
+      flex-wrap: wrap;
+      padding: 12px 8px 8px 18px;
+      border-radius: 22px;
+    }
+
+    .lang-hint-text {
+      flex: 1 1 100%;
+      white-space: normal;
+    }
+
+    .lang-hint-go {
+      margin-right: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lang-hint-close {
+      transition: none;
+    }
+  }
+</style>

@@ -1,5 +1,7 @@
 import { gsap } from 'gsap';
 import { prefersReducedMotion } from './effects/detect';
+import { isLocale } from './i18n';
+import { rememberLocale } from './lang-hint';
 
 // ── Language menu: animated popover, keeps the scene when switching language ──
 
@@ -105,7 +107,12 @@ export function initLangMenu(): void {
     .querySelectorAll<HTMLAnchorElement>('[data-lang-link]')
     .forEach((link: HTMLAnchorElement): void => {
       const base: string = link.getAttribute('href') ?? '/';
+      const locale: string = link.hreflang;
       link.addEventListener('click', (): void => {
+        // A language picked here is final: the language hint does not come back.
+        if (isLocale(locale)) {
+          rememberLocale(locale);
+        }
         link.href = `${base}${window.location.hash}`;
       });
     });

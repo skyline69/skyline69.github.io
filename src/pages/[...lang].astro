@@ -5,6 +5,7 @@
 import type { CollectionEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import LanguageHint from '../components/LanguageHint.astro';
 import Stage from '../components/Stage.astro';
 import IntroScene from '../components/scenes/IntroScene.astro';
 import WorkScene, { type WorkProject } from '../components/scenes/WorkScene.astro';
@@ -120,6 +121,7 @@ const jsonLd: string = serializeJsonLd(
 
 <Layout locale={locale} title={title} description={description} author={profile.name} jsonLd={jsonLd}>
   <SiteHeader locale={locale} name={profile.name} githubUrl={profile.githubUrl} />
+  <LanguageHint locale={locale} />
   <Stage>
     <IntroScene
       locale={locale}

@@ -5,6 +5,7 @@ import {
   MESSAGES,
   isLocale,
   localePath,
+  preferredLocale,
   textIn,
   type ErrorCode,
   type Locale,
@@ -26,6 +27,19 @@ describe('isLocale', () => {
     expect(isLocale('de')).toBe(true);
     expect(isLocale('fr')).toBe(false);
     expect(isLocale('')).toBe(false);
+  });
+});
+
+describe('preferredLocale', () => {
+  test('takes the first published language, ignoring region', () => {
+    expect(preferredLocale(['de-AT', 'en-US'])).toBe('de');
+    expect(preferredLocale(['fr-FR', 'TR', 'de'])).toBe('tr');
+    expect(preferredLocale(['en-GB'])).toBe('en');
+  });
+
+  test('is null when no published language is preferred', () => {
+    expect(preferredLocale(['fr', 'nl-BE'])).toBeNull();
+    expect(preferredLocale([])).toBeNull();
   });
 });
 

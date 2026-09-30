@@ -43,7 +43,7 @@ src/
 ├── pages/llms.txt.ts, llms-full.txt.ts
 ├── layouts/Layout.astro            # <head>, font preload, OG tags, origin trial meta
 ├── components/
-│   ├── SiteHeader.astro, SceneFooter.astro, Stage.astro, Icon.astro, LanguageSwitcher.astro
+│   ├── SiteHeader.astro, SceneFooter.astro, Stage.astro, Icon.astro, LanguageSwitcher.astro, LanguageHint.astro
 │   ├── ErrorPage.astro             # Shared error page (404 and 5xx)
 │   └── scenes/{Intro,Work,Stack,Me}Scene.astro
 ├── content.config.ts               # Zod schemas
@@ -56,6 +56,7 @@ src/
 │   ├── site.ts                     # Title/description + page data shared by page and agent files
 │   ├── stage.ts                    # Client orchestrator: controller + motion + effects
 │   ├── lang-menu.ts                # Language menu: outside click, Escape, keeps the scene hash
+│   ├── lang-hint.ts                # Suggests the reader's language; remembers their choice
 │   ├── scenes/                     # state.ts, regions.ts (pure), controller.ts, timelines.ts, shatter-transition.ts
 │   ├── motion/                     # intro, reveal, mist, header (nav + counter), work, stack (GSAP); fire (OGL shader), embers, name-fx
 │   └── effects/                    # detect, mount, scene-effects, liquid, shatter (Canvas UI adapters)
@@ -116,6 +117,7 @@ The site is built for crawlers and AI agents as well as people. All agent files 
 - Locales live in `lib/i18n.ts` (`LOCALES`, `LOCALE_INFO`). English is the default and has no prefix; `pages/[...lang].astro` builds one page per locale.
 - Interface copy (nav, buttons, labels, aria text, meta tagline) is in `MESSAGES`, one object per locale. Never hardcode visible text in components; add a key to `Messages` instead.
 - Content copy is in the collections: profile, projects and highlights have a required `translations` block with `de` and `tr` versions of their text fields. `textIn()` picks the right one and never falls back to English.
+- Nothing redirects by browser language or IP. When `navigator.languages` prefers a published locale other than the page's, `LanguageHint.astro` + `lib/lang-hint.ts` show a small panel under the language menu, in the suggested language. It never returns once the reader follows it, dismisses it or picks a language in the menu (`localStorage` key `lang-choice`).
 - Every locale page sets `<html lang>`, a canonical URL, hreflang alternates (plus `x-default`) and `og:locale`. The sitemap lists all three with alternates.
 - Agent files (`index.md`, `llms.txt`, `llms-full.txt`) and the JSON-LD `WebSite` node stay English only.
 - The copy rules (no em dashes, no "·", no emojis) apply to every language; `tests/i18n.test.ts` checks `MESSAGES`.
