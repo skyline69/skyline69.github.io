@@ -6,35 +6,19 @@ import { createSceneEffects, type SceneEffects } from './effects/scene-effects';
 import { playIntro } from './motion/intro';
 import { createMist, type Mist } from './motion/mist';
 import { createNameFx, type NameFx } from './motion/name-fx';
-import { createNavIndicator, type NavIndicator } from './motion/nav';
+import { createHeaderChrome, type HeaderChrome } from './motion/header';
 import { revealScene } from './motion/reveal';
 import { initStack, type Stack } from './motion/stack';
 import { initWork, type Work } from './motion/work';
 import { SceneController, type Transition } from './scenes/controller';
 import { withShatter } from './scenes/shatter-transition';
-import { SCENE_IDS, formatCounter, type SceneId } from './scenes/state';
+import { SCENE_IDS, type SceneId } from './scenes/state';
 import { crossfade, wipe } from './scenes/timelines';
 
 // ── Stage: wires scenes, motion and effects together ──
 
 function sceneElement(stage: HTMLElement, id: SceneId): HTMLElement | null {
   return stage.querySelector<HTMLElement>(`[data-scene="${id}"]`);
-}
-
-function updateChrome(id: SceneId, index: number): void {
-  document
-    .querySelectorAll<HTMLAnchorElement>('[data-nav]')
-    .forEach((link: HTMLAnchorElement): void => {
-      if (link.dataset['nav'] === id) {
-        link.setAttribute('aria-current', 'true');
-      } else {
-        link.removeAttribute('aria-current');
-      }
-    });
-  const counter: HTMLElement | null = document.querySelector<HTMLElement>('[data-counter]');
-  if (counter) {
-    counter.textContent = formatCounter(index, SCENE_IDS.length);
-  }
 }
 
 function pickTransition(stage: HTMLElement, capabilities: Capabilities): Transition {
@@ -81,9 +65,9 @@ export function initStage(): void {
   });
 
   let mist: Mist | null = null;
-  let nav: NavIndicator | null = null;
-  const onScene = (id: SceneId, index: number): void => {
-    updateChrome(id, index);
+  let header: HeaderChrome | null = null;
+  const onScene = (id: SceneId): void => {
+    header?.moveTo(id);
     mist?.moveTo(id);
     stack?.setVisible(id === 'stack');
     if (id === 'intro') {
@@ -103,14 +87,13 @@ export function initStage(): void {
       work?.reset();
       nameFx?.stop();
       // Tabs react as the change starts, not when the transition ends.
-      updateChrome(to, SCENE_IDS.indexOf(to));
-      nav?.moveTo(to);
+      header?.moveTo(to);
     },
     afterChange: onScene,
   });
 
   mist = createMist(stage, controller.current, capabilities.reducedMotion);
-  nav = createNavIndicator(controller.current, capabilities.reducedMotion);
+  header = createHeaderChrome(controller.current, capabilities.reducedMotion);
   document.documentElement.classList.add('stage-ready');
 
   const startsOnIntro: boolean = controller.current === 'intro';

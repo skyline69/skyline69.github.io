@@ -147,6 +147,31 @@ const t: Messages = MESSAGES[locale];
     font-variant-numeric: tabular-nums;
   }
 
+  /* Rolling digits, built by lib/motion/counter.ts. Each digit is a small window; during a
+     roll the incoming glyph sits on top of the outgoing one and the edges fade out. The mask
+     clips the window; side padding (cancelled by margin) keeps a wider glyph from being cut
+     while the width eases. */
+  .counter :global(.counter-digit) {
+    position: relative;
+    display: inline-block;
+    box-sizing: content-box;
+    padding: 0 0.3em;
+    margin: 0 -0.3em;
+    vertical-align: bottom;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
+  }
+
+  .counter :global(.counter-glyph) {
+    display: inline-block;
+  }
+
+  .counter :global(.counter-glyph--float) {
+    position: absolute;
+    top: 0;
+    left: 0.3em;
+  }
+
   .header-github {
     display: inline-flex;
     align-items: center;

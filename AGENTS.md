@@ -54,7 +54,7 @@ src/
 │   ├── stage.ts                    # Client orchestrator: controller + motion + effects
 │   ├── lang-menu.ts                # Language menu: outside click, Escape, keeps the scene hash
 │   ├── scenes/                     # state.ts (pure), controller.ts, timelines.ts, shatter-transition.ts
-│   ├── motion/                     # intro, reveal, mist, nav, work, stack (GSAP); fire (OGL shader), embers, name-fx
+│   ├── motion/                     # intro, reveal, mist, header (nav + counter), work, stack (GSAP); fire (OGL shader), embers, name-fx
 │   └── effects/                    # detect, mount, scene-effects, liquid, shatter (Canvas UI adapters)
 ├── vendor/canvas-ui/               # Canvas UI source, copied unmodified (see below)
 ├── scripts/main.ts                 # Client entry
